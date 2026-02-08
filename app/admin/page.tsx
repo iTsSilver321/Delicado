@@ -1,45 +1,25 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis
-} from "recharts";
+import { AreaChartComponent } from "./components/Charts";
 import { DollarSign, ShoppingBag, Users, TrendingUp } from "lucide-react";
-import { getAdminStats, getRecentSales } from "./actions";
+import { fetchAdminStats, fetchRecentSales } from "./queries";
 import { formatCurrency, getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-export default function AdminDashboard() {
-    const [stats, setStats] = useState<any>(null);
-    const [recentSales, setRecentSales] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+export default async function AdminDashboard() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    useEffect(() => {
-        async function loadData() {
-            try {
-                const statsData = await getAdminStats();
-                const salesData = await getRecentSales();
-                setStats(statsData);
-                setRecentSales(salesData);
-            } catch (error) {
-                console.error("Failed to load admin data", error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        loadData();
-    }, []);
-
-    if (isLoading) {
-        return <div className="p-8 text-center">Loading dashboard...</div>;
+    if (!user) {
+        redirect('/auth/login')
     }
+
+
+    const [stats, recentSales] = await Promise.all([
+        fetchAdminStats(supabase),
+        fetchRecentSales()
+    ]);
 
     return (
         <div className="space-y-8">
@@ -101,39 +81,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent className="pl-2">
                         <div className="h-[350px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={stats?.chartData || []}>
-                                    <defs>
-                                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <XAxis
-                                        dataKey="name"
-                                        stroke="#888888"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={false}
-                                    />
-                                    <YAxis
-                                        stroke="#888888"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickFormatter={(value) => `$${value}`}
-                                    />
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="total"
-                                        stroke="#8884d8"
-                                        fillOpacity={1}
-                                        fill="url(#colorTotal)"
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                            <AreaChartComponent data={stats?.chartData || []} />
                         </div>
                     </CardContent>
                 </Card>

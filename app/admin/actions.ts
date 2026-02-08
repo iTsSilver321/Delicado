@@ -24,66 +24,6 @@ async function checkAdmin() {
   }
 }
 
-export async function getAdminStats() {
-  await checkAdmin()
-
-  const { data: orders, error: ordersError } = await supabaseAdmin
-    .from('orders')
-    .select('total, created_at, status')
-
-  const { count: customersCount, error: customersError } = await supabaseAdmin
-    .from('profiles')
-    .select('*', { count: 'exact', head: true })
-
-  const { count: productsCount, error: productsError } = await supabaseAdmin
-    .from('products')
-    .select('*', { count: 'exact', head: true })
-    
-  // Calculate stats
-  const totalRevenue = orders?.reduce((acc, order) => acc + (order.status === 'paid' || order.status === 'completed' || order.status === 'delivered' ? order.total : 0), 0) || 0
-  const totalOrders = orders?.length || 0
-  const activeOrders = orders?.filter(o => o.status === 'pending' || o.status === 'processing').length || 0
-  
-  // Calculate monthly sales for chart
-  const salesByMonth = orders?.reduce((acc: any, order) => {
-    const date = new Date(order.created_at)
-    const month = date.toLocaleString('default', { month: 'short' })
-    if (order.status === 'paid' || order.status === 'completed' || order.status === 'delivered') {
-      acc[month] = (acc[month] || 0) + (order.total / 100) // Convert cents to dollars
-    }
-    return acc
-  }, {})
-
-  const chartData = Object.entries(salesByMonth || {}).map(([name, total]) => ({
-    name,
-    total
-  }))
-
-  return {
-    revenue: totalRevenue / 100, // Convert cents to dollars
-    totalOrders,
-    activeOrders,
-    totalCustomers: customersCount || 0,
-    chartData
-  }
-}
-
-export async function getRecentSales() {
-  await checkAdmin()
-
-  const { data: orders } = await supabaseAdmin
-    .from('orders')
-    .select('id, total, customer_name, customer_email, created_at')
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  return orders?.map(order => ({
-    id: order.id,
-    name: order.customer_name,
-    email: order.customer_email,
-    amount: order.total / 100 // Convert cents to dollars
-  })) || []
-}
 
 export async function getCustomers() {
   await checkAdmin()
