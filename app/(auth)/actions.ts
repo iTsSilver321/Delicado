@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { getURL } from '@/lib/utils'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -25,7 +25,7 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
-  const origin = (await headers()).get('origin')
+  const origin = getURL()
   const supabase = await createClient()
 
   const email = formData.get('email') as string
@@ -57,7 +57,7 @@ export async function signup(formData: FormData) {
 }
 
 export async function signInWithGoogle(): Promise<void> {
-  const origin = (await headers()).get('origin')
+  const origin = getURL()
   const supabase = await createClient()
   
   const { data, error } = await supabase.auth.signInWithOAuth({
