@@ -2,55 +2,54 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
 import { headers } from 'next/headers';
+import { z } from 'zod';
 
-interface CartItem {
-    id: string;
-    productId: string;
-    name: string;
-    price: number;
-    image: string;
-    quantity: number;
-    isCustomized: boolean;
-    customization?: {
-        text: string;
-        font: string;
-        color: string;
-        position: { x: number; y: number };
-        textSize: number;
-    };
-}
+const cartItemSchema = z.object({
+    id: z.string(),
+    productId: z.string(),
+    name: z.string(),
+    price: z.number(),
+    image: z.string().optional(),
+    quantity: z.number().int().positive(),
+    isCustomized: z.boolean(),
+    customization: z.object({
+        text: z.string(),
+        font: z.string(),
+        color: z.string(),
+        position: z.object({ x: z.number(), y: z.number() }),
+        textSize: z.number(),
+    }).optional(),
+});
 
-interface CheckoutRequest {
-    items: CartItem[];
-    customerInfo: {
-        name: string;
-        email: string;
-        phone: string;
-        address: {
-            line1: string;
-            line2?: string;
-            city: string;
-            state: string;
-            postal_code: string;
-            country: string;
-        };
-    };
-    paymentMethod: 'stripe' | 'cod';
-    notes?: string;
-}
+const checkoutRequestSchema = z.object({
+    items: z.array(cartItemSchema).min(1, "No items in cart"),
+    customerInfo: z.object({
+        name: z.string().min(1, "Name is required"),
+        email: z.string().email("Valid email is required"),
+        phone: z.string().min(1, "Phone is required"),
+        address: z.object({
+            line1: z.string().min(1, "Address line 1 is required"),
+            line2: z.string().optional(),
+            city: z.string().min(1, "City is required"),
+            state: z.string().min(1, "State is required"),
+            postal_code: z.string().min(1, "Postal code is required"),
+            country: z.string().min(1, "Country is required"),
+        }),
+    }),
+    paymentMethod: z.enum(['stripe', 'cod']),
+    notes: z.string().optional(),
+});
 
 export async function POST(request: Request) {
     try {
-        const body: CheckoutRequest = await request.json();
-        const { items, customerInfo, paymentMethod, notes } = body;
+        const body = await request.json();
+        const result = checkoutRequestSchema.safeParse(body);
 
-        if (!items || items.length === 0) {
-            return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
+        if (!result.success) {
+            return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
         }
 
-        if (!customerInfo || !customerInfo.name || !customerInfo.email || !customerInfo.address) {
-            return NextResponse.json({ error: 'Missing customer information. Please use the checkout page.' }, { status: 400 });
-        }
+        const { items, customerInfo, paymentMethod, notes } = result.data;
 
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();

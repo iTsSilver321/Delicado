@@ -2,13 +2,38 @@ import { NextResponse } from 'next/server';
 import { resend, FROM_EMAIL } from '@/lib/resend';
 import { WelcomeNewsletterEmail } from '@/lib/email-templates';
 import { createClient } from '@/lib/supabase/server';
+import { z } from 'zod';
+
+const schema = z.object({
+    email: z.string().email("Valid email is required"),
+    token: z.string().min(1, "Captcha token is required"),
+});
 
 export async function POST(request: Request) {
     try {
-        const { email } = await request.json();
+        const body = await request.json();
+        const result = schema.safeParse(body);
 
-        if (!email || !email.includes('@')) {
-            return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
+        if (!result.success) {
+            return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
+        }
+
+        const { email, token } = result.data;
+
+        // Verify Turnstile Token
+        const formData = new FormData();
+        formData.append('secret', process.env.TURNSTILE_SECRET_KEY!);
+        formData.append('response', token);
+        formData.append('remoteip', request.headers.get('x-forwarded-for') ?? '');
+
+        const turnstileRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const turnstileData = await turnstileRes.json();
+        if (!turnstileData.success) {
+            return NextResponse.json({ error: 'Captcha validation failed' }, { status: 400 });
         }
 
         const supabase = await createClient();

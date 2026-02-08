@@ -97,21 +97,28 @@ const categories = [
   { name: "Tableware", icon: UtensilsCrossed, desc: "Table linens & napkins", href: "/products/tableware", color: "from-emerald-500/20" },
 ];
 
+import Turnstile from "react-turnstile";
+
 export default function Home() {
   const [email, setEmail] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
+    if (!turnstileToken) {
+      toast.error("Please complete the security check.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, token: turnstileToken }),
       });
       const data = await response.json();
 
@@ -120,6 +127,7 @@ export default function Home() {
           description: data.message || "You'll receive our latest collections and exclusive offers."
         });
         setEmail("");
+        setTurnstileToken(""); // Reset token logic might be needed, Turnstile usually expires
       } else {
         toast.error(data.error || "Failed to subscribe. Please try again.");
       }
@@ -504,6 +512,13 @@ export default function Home() {
               className="h-12 rounded-full px-6"
               required
             />
+            {/* Turnstile Widget */}
+            <div className="flex justify-center sm:justify-start">
+              <Turnstile
+                sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+                onVerify={(token) => setTurnstileToken(token)}
+              />
+            </div>
             <Button
               type="submit"
               size="lg"
