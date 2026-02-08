@@ -25,52 +25,6 @@ async function checkAdmin() {
 }
 
 
-export async function getCustomers() {
-  await checkAdmin()
-
-  // Fetch profiles - REMOVED ORDER BY created_at WHICH DOES NOT EXIST
-  const { data: profiles, error: profileError } = await supabaseAdmin
-    .from('profiles')
-    .select('*')
-
-  if (profileError) {
-    console.error('getCustomers: Error fetching profiles', profileError);
-  }
-
-  // Fetch all users from Auth
-  const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers()
-  
-  if (userError || !users) {
-    console.error('getCustomers: Error fetching users from auth', userError);
-    return []
-  }
-
-  // Merge profile data with auth user data
-  const customers = users.map(user => {
-    const profile = profiles?.find(p => p.id === user.id)
-    
-    // Log if profile is missing for a user, especially for me (development)
-    if (!profile) {
-      console.warn(`getCustomers: No profile found for user ${user.email} (${user.id})`);
-    } else {
-        // Log if role mismatch
-        if (profile.role !== 'admin' && user.email?.includes('eduar')) { // Assuming user's email
-            console.log(`getCustomers: User ${user.email} has profile role '${profile.role}'`);
-        }
-    }
-
-    return {
-        id: user.id,
-        email: user.email,
-        full_name: profile?.full_name || user.user_metadata?.full_name || 'N/A',
-        role: profile?.role || 'user',
-        created_at: user.created_at,
-        avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url
-    }
-  }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) // Sort by created_at descending
-
-  return customers
-}
 
 export async function updateOrderStatus(orderId: string, status: string) {
   try {

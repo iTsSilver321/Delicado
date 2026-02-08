@@ -61,3 +61,78 @@ export async function fetchRecentSales() {
         amount: order.total / 100 // Convert cents to dollars
     })) || [];
 }
+
+export async function fetchOrders() {
+    const { data, error } = await supabaseAdmin
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("fetchOrders: Error fetching orders", error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function fetchProducts() {
+    const { data, error } = await supabaseAdmin
+        .from("products")
+        .select("*")
+        .order("name");
+
+    if (error) {
+        console.error("fetchProducts: Error fetching products", error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function fetchCustomers() {
+    // Fetch profiles
+    const { data: profiles, error: profileError } = await supabaseAdmin
+        .from('profiles')
+        .select('*');
+
+    if (profileError) {
+        console.error('fetchCustomers: Error fetching profiles', profileError);
+    }
+
+    // Fetch all users from Auth
+    const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+
+    if (userError || !users) {
+        console.error('fetchCustomers: Error fetching users from auth', userError);
+        return [];
+    }
+
+    // Merge profile data with auth user data
+    const customers = users.map(user => {
+        const profile = profiles?.find(p => p.id === user.id);
+        
+        return {
+            id: user.id,
+            email: user.email || '',
+            full_name: profile?.full_name || user.user_metadata?.full_name || 'N/A',
+            role: profile?.role || 'user',
+            created_at: user.created_at,
+            avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url
+        };
+    }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return customers;
+}
+
+export async function fetchCustomerOrders(email: string) {
+    const { data: orders, error } = await supabaseAdmin
+        .from('orders')
+        .select('*')
+        .eq('customer_email', email)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('fetchCustomerOrders: Error fetching customer orders:', error);
+        return [];
+    }
+    return orders;
+}
