@@ -107,12 +107,27 @@ export default function Home() {
     if (!email) return;
 
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success("Welcome to Delicado!", {
-      description: "You'll receive our latest collections and exclusive offers."
-    });
-    setEmail("");
-    setIsSubmitting(false);
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Welcome to Delicado!", {
+          description: data.message || "You'll receive our latest collections and exclusive offers."
+        });
+        setEmail("");
+      } else {
+        toast.error(data.error || "Failed to subscribe. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const scrollCarousel = (direction: "left" | "right") => {
@@ -143,25 +158,30 @@ export default function Home() {
             <span>Premium Custom Embroidery</span>
           </motion.div>
 
-          <motion.h1 variants={fadeInUp} className="font-serif text-6xl md:text-8xl font-bold tracking-tight text-foreground text-balance">
+          <motion.h1 variants={fadeInUp} className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground text-balance">
             Make It Uniquely <span className="text-primary italic">Yours</span>.
           </motion.h1>
 
           <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto text-balance leading-relaxed">
-            Experience the magic of seeing your design before it's stitched.
+            Experience the magic of seeing your design before it&apos;s stitched.
             Luxury bedding, clothing, and home goods personalized by you.
           </motion.p>
 
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-            <Link href="/product/bedding">
-              <Button size="lg" className="h-14 px-10 text-lg rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center pt-8">
+            <Link href="/search">
+              <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95">
                 <Palette className="w-5 h-5 mr-2" />
                 Customize Now
               </Button>
             </Link>
-            <Link href="/collections">
-              <Button variant="outline" size="lg" className="h-14 px-10 text-lg rounded-full border-2 hover:bg-secondary/50 transition-all hover:scale-105 active:scale-95">
-                Explore Collection
+            <Link href="/search?category=bedding">
+              <Button variant="outline" size="lg" className="h-14 px-8 text-lg rounded-full border-2 hover:bg-secondary/50 transition-all hover:scale-105 active:scale-95">
+                Shop Bedding
+              </Button>
+            </Link>
+            <Link href="/search?category=clothing">
+              <Button variant="outline" size="lg" className="h-14 px-8 text-lg rounded-full border-2 hover:bg-secondary/50 transition-all hover:scale-105 active:scale-95">
+                Shop Clothing
               </Button>
             </Link>
           </motion.div>
@@ -176,7 +196,7 @@ export default function Home() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="font-serif text-4xl font-bold mb-4">Shop by Category</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Shop by Category</h2>
           <p className="text-muted-foreground text-lg">Find your perfect canvas for personalization</p>
         </motion.div>
 
@@ -222,7 +242,7 @@ export default function Home() {
                 <Sparkles className="w-4 h-4" />
                 <span>Featured</span>
               </div>
-              <h2 className="font-serif text-4xl font-bold">Popular Picks</h2>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold">Popular Picks</h2>
             </div>
             <div className="hidden sm:flex gap-2">
               <Button variant="outline" size="icon" onClick={() => scrollCarousel("left")}>
@@ -288,7 +308,7 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="font-serif text-4xl font-bold mb-4">Why Choose Delicado?</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Why Choose Delicado?</h2>
           <p className="text-muted-foreground text-lg">Artisan quality meets modern technology.</p>
         </motion.div>
 
@@ -331,7 +351,7 @@ export default function Home() {
             <Heart className="w-4 h-4" />
             <span>Customer Love</span>
           </div>
-          <h2 className="font-serif text-4xl font-bold mb-4">What Our Customers Say</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">What Our Customers Say</h2>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -346,7 +366,7 @@ export default function Home() {
             >
               <Quote className="w-8 h-8 text-primary/20 mb-4" />
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                "{testimonial.text}"
+                &quot;{testimonial.text}&quot;
               </p>
               <div className="flex items-center justify-between">
                 <div>
@@ -378,7 +398,7 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               className="md:w-1/2 space-y-8"
             >
-              <h2 className="font-serif text-4xl md:text-5xl font-bold">Simple as 1, 2, 3.</h2>
+              <h2 className="font-serif text-3xl md:text-5xl font-bold">Simple as 1, 2, 3.</h2>
 
               <div className="space-y-6">
                 {[
@@ -434,7 +454,7 @@ export default function Home() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="font-serif text-4xl font-bold mb-4">Crafted With Love</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Crafted With Love</h2>
           <p className="text-muted-foreground text-lg">A glimpse into our artisan workshop</p>
         </motion.div>
 
@@ -449,7 +469,7 @@ export default function Home() {
               className={`aspect-square rounded-2xl overflow-hidden ${image.color} flex items-center justify-center group cursor-pointer hover:shadow-xl transition-all duration-300`}
             >
               <div className="text-center p-4">
-                <span className="font-serif text-3xl text-foreground/20 group-hover:text-foreground/40 transition-colors">
+                <span className="font-serif text-3xl text-black/20 group-hover:text-black/40 transition-colors">
                   {image.alt}
                 </span>
               </div>
@@ -470,7 +490,7 @@ export default function Home() {
             <Sparkles className="w-4 h-4" />
             <span>Stay Updated</span>
           </div>
-          <h2 className="font-serif text-4xl font-bold mb-4">Join the Delicado Family</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Join the Delicado Family</h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
             Get early access to new collections, exclusive discounts, and embroidery inspiration delivered to your inbox.
           </p>

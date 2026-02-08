@@ -4,8 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signout } from "@/app/(auth)/actions";
-import { User, Mail, Package, LogOut } from "lucide-react";
+import { User, Package, LogOut, Clock, MapPin, CreditCard, Banknote } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+
+const statusColors: Record<string, string> = {
+    pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+    confirmed: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    paid: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+    processing: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+    shipped: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
+    delivered: "bg-green-500/10 text-green-600 border-green-500/20",
+    cancelled: "bg-red-500/10 text-red-600 border-red-500/20",
+};
 
 export default async function ProfilePage() {
     const supabase = await createClient();
@@ -21,6 +32,23 @@ export default async function ProfilePage() {
         .select("*")
         .eq("id", user.id)
         .single();
+
+    // Fetch user's orders
+    const { data: orders } = await supabase
+        .from("orders")
+        .select(`
+            *,
+            order_items (
+                id,
+                product_name,
+                quantity,
+                unit_price,
+                customization
+            )
+        `)
+        .or(`user_id.eq.${user.id},customer_email.eq.${user.email}`)
+        .order("created_at", { ascending: false })
+        .limit(10);
 
     return (
         <div className="container py-16 md:py-24">
@@ -88,13 +116,69 @@ export default async function ProfilePage() {
                                 <h2 className="font-serif text-xl font-bold">Order History</h2>
                             </div>
 
-                            <div className="text-center py-12 text-muted-foreground space-y-3">
-                                <Package className="w-12 h-12 mx-auto opacity-20" />
-                                <p>No orders yet.</p>
-                                <Button variant="link" asChild className="text-primary">
-                                    <a href="/collections">Start Shopping</a>
-                                </Button>
-                            </div>
+                            {!orders || orders.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground space-y-3">
+                                    <Package className="w-12 h-12 mx-auto opacity-20" />
+                                    <p>No orders yet.</p>
+                                    <Button variant="link" asChild className="text-primary">
+                                        <Link href="/collections">Start Shopping</Link>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {orders.map((order) => (
+                                        <div key={order.id} className="border rounded-xl p-4 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full border capitalize ${statusColors[order.status] || statusColors.pending}`}>
+                                                        {order.status}
+                                                    </span>
+                                                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {new Date(order.created_at).toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    {order.payment_method === 'cod' ? (
+                                                        <Banknote className="w-4 h-4 text-emerald-600" />
+                                                    ) : (
+                                                        <CreditCard className="w-4 h-4 text-primary" />
+                                                    )}
+                                                    <span className="font-medium">${(order.total / 100).toFixed(2)}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {order.order_items?.map((item: any) => (
+                                                    <div key={item.id} className="flex items-center justify-between text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{item.product_name}</span>
+                                                            <span className="text-muted-foreground">× {item.quantity}</span>
+                                                            {item.customization?.text && (
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    "{item.customization.text}"
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-muted-foreground">
+                                                            ${((item.unit_price * item.quantity) / 100).toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {order.shipping_address && (
+                                                <div className="flex items-start gap-2 text-xs text-muted-foreground pt-2 border-t">
+                                                    <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                                    <span>
+                                                        {order.shipping_address.line1}, {order.shipping_address.city}, {order.shipping_address.postal_code}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                     </div>

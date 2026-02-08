@@ -4,12 +4,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { ShoppingBag, Menu, Search, ChevronDown, Bed, Shirt, UtensilsCrossed, User, LogOut, Package } from "lucide-react";
+import { ShoppingBag, Menu, Search, ChevronDown, Bed, Shirt, UtensilsCrossed, User, LogOut, Package, Shield, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store";
 import { CartSheet } from "./CartSheet";
 import { SearchDialog } from "./SearchDialog";
+import { SearchInput } from "./SearchInput";
 import { MobileMenu } from "./MobileMenu";
+import { ThemeToggle } from "./ThemeToggle";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -23,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signout } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { createClient } from "@/lib/supabase/client";
 
 const categories = [
     { name: "Bedding", href: "/products/bedding", icon: Bed, desc: "Pillows, sheets & more" },
@@ -41,11 +44,36 @@ export function Header({ user }: HeaderProps) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // Hydration fix for persisting store
+    // Hydration fix
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // Check if user is admin
+    useEffect(() => {
+        let isCancelled = false;
+
+        if (user) {
+            const supabase = createClient();
+            supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+                .then(({ data }) => {
+                    if (!isCancelled) {
+                        setIsAdmin(data?.role === 'admin');
+                    }
+                });
+        }
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [user]);
 
     // Keyboard shortcut for search
     useEffect(() => {
@@ -63,7 +91,7 @@ export function Header({ user }: HeaderProps) {
     const itemCount = mounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
 
     return (
-        <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-40 w-full border-b border-border/50 dark:border-border/30 bg-background/80 dark:bg-card/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 dark:supports-[backdrop-filter]:bg-card/60">
             <div className="container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Button
@@ -128,10 +156,10 @@ export function Header({ user }: HeaderProps) {
                                         ))}
                                         <div className="border-t mt-2 pt-2">
                                             <Link
-                                                href="/collections"
+                                                href="/search"
                                                 className="block px-3 py-2 text-sm font-medium text-primary hover:underline"
                                             >
-                                                View All Collections →
+                                                Shop All Products →
                                             </Link>
                                         </div>
                                     </div>
@@ -140,26 +168,30 @@ export function Header({ user }: HeaderProps) {
                         </AnimatePresence>
                     </div>
 
-                    <Link href="/collections" className="px-4 py-2 text-sm font-medium transition-colors hover:text-primary rounded-lg hover:bg-secondary/50">
-                        Collections
+                    <Link href="/search" className="px-4 py-2 text-sm font-medium transition-colors hover:text-primary rounded-lg hover:bg-secondary/50">
+                        Shop All
                     </Link>
                 </nav>
 
                 <div className="flex items-center gap-2">
+                    {/* Desktop Search Bar */}
+                    <div className="hidden md:block w-64 mr-2">
+                        <SearchInput />
+                    </div>
+
+                    {/* Mobile Search Button */}
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsSearchOpen(true)}
-                        className="relative hidden sm:inline-flex"
+                        className="relative md:hidden"
                     >
                         <Search className="h-5 w-5" />
                         <span className="sr-only">Search products</span>
-                        {/* Keyboard hint - desktop only */}
-                        <span className="hidden lg:flex absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground gap-0.5 whitespace-nowrap">
-                            <kbd className="px-1 rounded bg-secondary font-mono">⌘</kbd>
-                            <kbd className="px-1 rounded bg-secondary font-mono">K</kbd>
-                        </span>
                     </Button>
+
+                    {/* Theme Toggle */}
+                    <ThemeToggle />
 
                     {/* Cart - Now links to separate page */}
                     <Link href="/cart">
@@ -184,7 +216,7 @@ export function Header({ user }: HeaderProps) {
                     {user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="rounded-full overflow-hidden">
+                                <Button variant="ghost" size="icon" className="rounded-full overflow-hidden" suppressHydrationWarning>
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={user.user_metadata?.avatar_url} />
                                         <AvatarFallback className="bg-primary/10 text-primary">
@@ -208,6 +240,23 @@ export function Header({ user }: HeaderProps) {
                                         <span>Orders</span>
                                     </Link>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/wishlist" className="cursor-pointer">
+                                        <Heart className="mr-2 h-4 w-4" />
+                                        <span>Wishlist</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                {isAdmin && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/admin" className="cursor-pointer">
+                                                <Shield className="mr-2 h-4 w-4" />
+                                                <span>Admin Dashboard</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <form action={signout} className="w-full">

@@ -56,7 +56,7 @@ export async function signup(formData: FormData) {
   return { success: true }
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(_formData?: FormData) {
   const origin = (await headers()).get('origin')
   const supabase = await createClient()
   

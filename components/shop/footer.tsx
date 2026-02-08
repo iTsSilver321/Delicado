@@ -12,6 +12,12 @@ export function Footer() {
                         <p className="text-sm text-muted-foreground">
                             Premium personalized embroidery for your home and lifestyle. See it before you stitch it.
                         </p>
+                        <Link
+                            href="/about"
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
+                        >
+                            Learn more about us →
+                        </Link>
                     </div>
 
                     <div className="flex flex-col gap-4">
@@ -26,6 +32,7 @@ export function Footer() {
                         <h3 className="font-medium">Support</h3>
                         <Link href="/faq" className="text-sm text-muted-foreground hover:text-primary">FAQ</Link>
                         <Link href="/shipping" className="text-sm text-muted-foreground hover:text-primary">Shipping & Returns</Link>
+                        <Link href="/track-order" className="text-sm text-muted-foreground hover:text-primary">Track Order</Link>
                         <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact Us</Link>
                     </div>
 

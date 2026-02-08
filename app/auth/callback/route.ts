@@ -9,8 +9,34 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && data?.user) {
+      // Check if welcome email has been sent
+      const meta = data.user.user_metadata || {};
+      if (!meta.welcome_email_sent) {
+          try {
+            const baseUrl = origin || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+            
+            // Send email
+            await fetch(`${baseUrl}/api/send-welcome-email`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                email: data.user.email,
+                name: meta.full_name || meta.name || ''
+              }),
+            });
+
+            // Mark as sent
+            await supabase.auth.updateUser({
+                data: { welcome_email_sent: true }
+            });
+            
+          } catch (e) {
+            console.error('Failed to send welcome email:', e);
+          }
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {

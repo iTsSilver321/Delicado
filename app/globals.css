@@ -97,48 +97,49 @@
 }
 
 .dark {
-  --background: oklch(0.15 0.05 25);
-  --foreground: oklch(0.99 0.003 95);
+  --background: oklch(0.10 0 0);
+  /* Pure Neutral Black */
+  --foreground: oklch(0.98 0 0);
 
-  --card: oklch(0.20 0.05 25);
-  --card-foreground: oklch(0.99 0.003 95);
+  --card: oklch(0.16 0.01 25);
+  --card-foreground: oklch(0.98 0 0);
 
-  --popover: oklch(0.20 0.05 25);
-  --popover-foreground: oklch(0.99 0.003 95);
+  --popover: oklch(0.16 0.01 25);
+  --popover-foreground: oklch(0.98 0 0);
 
-  --primary: oklch(0.55 0.18 25);
-  /* Lighter Ruby for dark mode */
-  --primary-foreground: oklch(0.99 0.003 95);
+  --primary: oklch(0.55 0.22 15);
+  /* Vibrant Ruby Red - Same as light mode */
+  --primary-foreground: oklch(0.98 0 0);
 
-  --secondary: oklch(0.25 0.05 25);
-  --secondary-foreground: oklch(0.99 0.003 95);
+  --secondary: oklch(0.20 0.01 25);
+  --secondary-foreground: oklch(0.98 0 0);
 
-  --muted: oklch(0.25 0.05 25);
-  --muted-foreground: oklch(0.70 0.05 25);
+  --muted: oklch(0.20 0.01 25);
+  --muted-foreground: oklch(0.70 0 0);
 
-  --accent: oklch(0.25 0.05 25);
-  --accent-foreground: oklch(0.99 0.003 95);
+  --accent: oklch(0.20 0.01 25);
+  --accent-foreground: oklch(0.98 0 0);
 
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: oklch(0.50 0.20 25);
 
-  --border: oklch(0.30 0.05 25);
-  --input: oklch(0.30 0.05 25);
-  --ring: oklch(0.55 0.18 25);
+  --border: oklch(0.22 0.01 25);
+  --input: oklch(0.22 0.01 25);
+  --ring: oklch(0.55 0.22 15);
 
-  --chart-1: oklch(0.55 0.18 25);
-  --chart-2: oklch(0.85 0.16 85);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --chart-1: oklch(0.55 0.22 15);
+  --chart-2: oklch(0.85 0 0);
+  --chart-3: oklch(0.70 0.10 250);
+  --chart-4: oklch(0.65 0.15 320);
+  --chart-5: oklch(0.70 0.15 50);
 
-  --sidebar: oklch(0.20 0.05 25);
-  --sidebar-foreground: oklch(0.99 0.003 95);
-  --sidebar-primary: oklch(0.55 0.18 25);
-  --sidebar-primary-foreground: oklch(0.99 0.003 95);
-  --sidebar-accent: oklch(0.25 0.05 25);
-  --sidebar-accent-foreground: oklch(0.99 0.003 95);
-  --sidebar-border: oklch(0.30 0.05 25);
-  --sidebar-ring: oklch(0.55 0.18 25);
+  --sidebar: oklch(0.11 0.01 25);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.55 0.22 15);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.20 0.01 25);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.22 0.01 25);
+  --sidebar-ring: oklch(0.55 0.22 15);
 }
 
 /* Realistic Embroidery Effect 
@@ -167,10 +168,25 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Make toast descriptions more visible */
+  [data-sonner-toast] [data-description] {
+    color: oklch(0.35 0.05 25) !important;
+    opacity: 1 !important;
+  }
+
+  .dark [data-sonner-toast] [data-description] {
+    color: oklch(0.85 0.03 25) !important;
+  }
 }
 
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  padding-inline: 1rem;
+
+  @media (min-width: 768px) {
+    padding-inline: 2rem;
+  }
+
   max-width: 1400px;
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, X, ArrowRight, Loader2, Bed, Shirt, UtensilsCrossed } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -80,6 +81,14 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
     }, [isOpen]);
 
     // Keyboard navigation
+
+
+    const navigateToProduct = useCallback((slug: string) => {
+        router.push(`/product/${slug}`);
+        onClose();
+    }, [router, onClose]);
+
+    // Keyboard navigation
     useEffect(() => {
         if (!isOpen) return;
 
@@ -107,12 +116,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, results, selectedIndex, onClose]);
-
-    const navigateToProduct = (slug: string) => {
-        router.push(`/product/${slug}`);
-        onClose();
-    };
+    }, [isOpen, results, selectedIndex, onClose, navigateToProduct]);
 
     // Quick links when no query
     const quickLinks = [
@@ -158,6 +162,12 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                                     }}
                                     placeholder="Search products..."
                                     autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            router.push(`/search?q=${encodeURIComponent(query)}`);
+                                            onClose();
+                                        }
+                                    }}
                                     className="flex-1 bg-transparent px-4 py-4 text-lg outline-none placeholder:text-muted-foreground"
                                 />
                                 {isLoading ? (
@@ -193,9 +203,10 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                                                     >
                                                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary shrink-0 overflow-hidden">
                                                             {product.image_url ? (
-                                                                <img
+                                                                <Image
                                                                     src={product.image_url}
                                                                     alt={product.name}
+                                                                    fill
                                                                     className="h-full w-full object-cover"
                                                                 />
                                                             ) : (
@@ -219,7 +230,7 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                                     ) : !isLoading ? (
                                         <div className="py-12 text-center">
                                             <Search className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
-                                            <p className="text-muted-foreground">No products found for "{query}"</p>
+                                            <p className="text-muted-foreground">No products found for &quot;{query}&quot;</p>
                                             <p className="text-sm text-muted-foreground mt-1">
                                                 Try a different search term
                                             </p>
@@ -246,6 +257,21 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                                                 <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
                                             </button>
                                         ))}
+                                    </div>
+                                )}
+
+                                {query.trim() && (
+                                    <div className="pt-2 mt-2 border-t">
+                                        <button
+                                            onClick={() => {
+                                                router.push(`/search?q=${encodeURIComponent(query)}`);
+                                                onClose();
+                                            }}
+                                            className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-medium hover:bg-secondary transition-colors text-primary"
+                                        >
+                                            View all results for &quot;{query}&quot;
+                                            <ArrowRight className="h-4 w-4" />
+                                        </button>
                                     </div>
                                 )}
                             </div>

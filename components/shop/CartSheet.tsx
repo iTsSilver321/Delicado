@@ -11,40 +11,22 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
-import Image from "next/image";
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function CartSheet() {
-    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
     const { items, isOpen, closeCart, removeItem, updateQuantity } = useCartStore();
 
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const shipping = subtotal >= 10000 ? 0 : 999;
+    const total = subtotal + shipping;
 
-    const handleCheckout = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ items }),
-            });
-
-            const data = await response.json();
-
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                console.error('Checkout error:', data.error);
-                setIsLoading(false);
-            }
-        } catch (error) {
-            console.error('Checkout failed:', error);
-            setIsLoading(false);
-        }
+    const handleCheckout = () => {
+        closeCart();
+        router.push('/checkout');
     };
 
     return (
@@ -95,21 +77,26 @@ export function CartSheet() {
                                             </div>
 
                                             {/* Customization Badges */}
-                                            <div className="mt-2 text-sm text-muted-foreground space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-foreground">"{item.customization.text}"</span>
-                                                    <span className="px-1.5 py-0.5 rounded-full bg-secondary text-[10px] uppercase tracking-wide">
-                                                        {item.customization.font}
-                                                    </span>
+                                            {item.isCustomized && item.customization?.text && (
+                                                <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium text-foreground">"{item.customization.text}"</span>
+                                                        <span className="px-1.5 py-0.5 rounded-full bg-secondary text-[10px] uppercase tracking-wide">
+                                                            {item.customization.font}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs">
+                                                        <span
+                                                            className="w-3 h-3 rounded-full border shadow-sm"
+                                                            style={{ backgroundColor: item.customization.color }}
+                                                        />
+                                                        <span>Thread Color</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-xs">
-                                                    <span
-                                                        className="w-3 h-3 rounded-full border shadow-sm"
-                                                        style={{ backgroundColor: item.customization.color }}
-                                                    />
-                                                    <span>Thread Color</span>
-                                                </div>
-                                            </div>
+                                            )}
+                                            {!item.isCustomized && (
+                                                <p className="mt-1 text-sm text-muted-foreground">Standard product</p>
+                                            )}
                                         </div>
 
                                         {/* Controls */}
@@ -160,22 +147,27 @@ export function CartSheet() {
                             </div>
                             <div className="flex justify-between text-base">
                                 <span className="text-muted-foreground">Shipping</span>
-                                <span className="text-green-600 font-medium">Free</span>
+                                <span className={shipping === 0 ? "text-emerald-600 font-medium" : ""}>
+                                    {shipping === 0 ? "Free" : `$${(shipping / 100).toFixed(2)}`}
+                                </span>
                             </div>
+                            {shipping > 0 && (
+                                <p className="text-xs text-muted-foreground">Free shipping on orders over $100</p>
+                            )}
                             <Separator className="my-2" />
                             <div className="flex justify-between text-xl font-serif font-bold">
                                 <span>Total</span>
-                                <span>${(subtotal / 100).toFixed(2)}</span>
+                                <span>${(total / 100).toFixed(2)}</span>
                             </div>
                         </div>
 
                         <Button
                             size="lg"
                             className="w-full text-lg h-12"
-                            disabled={isLoading}
                             onClick={handleCheckout}
                         >
-                            {isLoading ? "Redirecting..." : "Checkout"}
+                            Proceed to Checkout
+                            <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                         <Button variant="outline" className="w-full" onClick={closeCart}>
                             Continue Shopping

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProductPreview } from "@/components/customizer/ProductPreview";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // Helper to determine product type from name/slug (since we don't store slug in cart currently, we might need to infer or add it)
 // Added 'productId' to cart item, but for ProductPreview we need 'pillow' | 'tshirt' | 'tablecloth'.
@@ -23,34 +23,13 @@ function getProductType(name: string): 'pillow' | 'tshirt' | 'tablecloth' {
 export default function CartPage() {
     const { items, removeItem, updateQuantity } = useCartStore();
     const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-    const handleCheckout = async () => {
+    const handleCheckout = () => {
         setIsLoading(true);
-        try {
-            const response = await fetch('/api/checkout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ items }),
-            });
-
-            const data = await response.json();
-
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                console.error('Checkout error:', data.error);
-                toast.error("Checkout failed. Please try again.");
-                setIsLoading(false);
-            }
-        } catch (error) {
-            console.error('Checkout failed:', error);
-            toast.error("Checkout failed. Please try again.");
-            setIsLoading(false);
-        }
+        router.push('/checkout');
     };
 
     return (
