@@ -56,7 +56,7 @@ export async function signup(formData: FormData) {
   return { success: true }
 }
 
-export async function signInWithGoogle(_formData?: FormData) {
+export async function signInWithGoogle(): Promise<void> {
   const origin = (await headers()).get('origin')
   const supabase = await createClient()
   
@@ -68,7 +68,7 @@ export async function signInWithGoogle(_formData?: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    throw new Error(error.message)
   }
 
   if (data.url) {

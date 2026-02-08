@@ -270,7 +270,7 @@ export default function CustomersPage() {
                                     <CardHeader>
                                         <CardTitle className="flex justify-between items-center">
                                             <span>Recent Orders</span>
-                                            {loadingOrders && <package className="w-4 h-4 animate-spin" />}
+                                            {loadingOrders && <Package className="w-4 h-4 animate-spin" />}
                                         </CardTitle>
                                         <CardDescription>
                                             View orders placed by this customer.
