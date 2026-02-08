@@ -174,21 +174,10 @@ export function Header({ user }: HeaderProps) {
                 </nav>
 
                 <div className="flex items-center gap-2">
-                    {/* Desktop Search Bar */}
-                    <div className="hidden md:block w-64 mr-2">
+                    {/* Search Bar - responsive width */}
+                    <div className="hidden sm:block w-40 sm:w-48 md:w-64 mr-2">
                         <SearchInput />
                     </div>
-
-                    {/* Mobile Search Button */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsSearchOpen(true)}
-                        className="relative md:hidden"
-                    >
-                        <Search className="h-5 w-5" />
-                        <span className="sr-only">Search products</span>
-                    </Button>
 
                     {/* Theme Toggle */}
                     <ThemeToggle />
@@ -269,18 +258,28 @@ export function Header({ user }: HeaderProps) {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <Button asChild variant="default" size="sm" className="ml-2 hidden sm:inline-flex">
-                            <Link href="/login">
-                                Login
-                            </Link>
-                        </Button>
+                        <>
+                            {/* Mobile: Icon only */}
+                            <Button asChild variant="ghost" size="icon" className="sm:hidden text-primary hover:text-primary hover:bg-primary/10">
+                                <Link href="/login">
+                                    <User className="h-5 w-5" />
+                                    <span className="sr-only">Login</span>
+                                </Link>
+                            </Button>
+                            {/* Desktop: Text button */}
+                            <Button asChild variant="default" size="sm" className="hidden sm:inline-flex ml-2">
+                                <Link href="/login">
+                                    Login
+                                </Link>
+                            </Button>
+                        </>
                     )}
                 </div>
             </div>
 
 
             <SearchDialog isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-            <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+            <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} user={user} />
         </header>
     );
 }

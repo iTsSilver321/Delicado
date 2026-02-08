@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,15 +20,21 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import { Filter, X } from "lucide-react";
+import { Filter, X, Bed, Shirt, UtensilsCrossed, ArrowUpDown, DollarSign, Check, SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface ProductFilterProps {
     maxPrice?: number;
 }
 
-const CATEGORIES = ["Bedding", "Clothing", "Tableware"];
+const CATEGORIES = [
+    { name: "Bedding", value: "bedding", icon: Bed },
+    { name: "Clothing", value: "clothing", icon: Shirt },
+    { name: "Tableware", value: "tableware", icon: UtensilsCrossed },
+];
+
 const SORT_OPTIONS = [
     { label: "Newest", value: "newest" },
     { label: "Price: Low to High", value: "price_asc" },
@@ -43,7 +48,7 @@ export function ProductFilter({ maxPrice = 1000 }: ProductFilterProps) {
     const [priceRange, setPriceRange] = useState([0, maxPrice]);
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [sort, setSort] = useState("newest");
-    const [isOpen, setIsOpen] = useState(false); // For mobile sheet
+    const [isOpen, setIsOpen] = useState(false);
 
     // Initialize state from URL params
     useEffect(() => {
@@ -110,7 +115,8 @@ export function ProductFilter({ maxPrice = 1000 }: ProductFilterProps) {
         selectedCategories.length +
         (sort !== "newest" ? 1 : 0);
 
-    const filterContent = (
+    // Desktop filter content (original style)
+    const desktopFilterContent = (
         <div className="space-y-6">
             {/* Sort */}
             <div className="space-y-2">
@@ -136,19 +142,29 @@ export function ProductFilter({ maxPrice = 1000 }: ProductFilterProps) {
                 <Label>Categories</Label>
                 <div className="space-y-2">
                     {CATEGORIES.map((category) => (
-                        <div key={category} className="flex items-center space-x-2">
-                            <Checkbox
-                                id={`category-${category}`}
-                                checked={selectedCategories.includes(category.toLowerCase())}
-                                onCheckedChange={() => handleCategoryChange(category.toLowerCase())}
-                            />
-                            <Label
-                                htmlFor={`category-${category}`}
-                                className="text-sm font-normal cursor-pointer"
-                            >
-                                {category}
-                            </Label>
-                        </div>
+                        <button
+                            key={category.value}
+                            onClick={() => handleCategoryChange(category.value)}
+                            className={cn(
+                                "flex items-center gap-3 w-full p-2 rounded-lg transition-colors text-left",
+                                selectedCategories.includes(category.value)
+                                    ? "bg-primary/10 text-primary"
+                                    : "hover:bg-secondary"
+                            )}
+                        >
+                            <div className={cn(
+                                "flex h-8 w-8 items-center justify-center rounded-lg",
+                                selectedCategories.includes(category.value)
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-secondary"
+                            )}>
+                                <category.icon className="h-4 w-4" />
+                            </div>
+                            <span className="text-sm font-medium">{category.name}</span>
+                            {selectedCategories.includes(category.value) && (
+                                <Check className="h-4 w-4 ml-auto" />
+                            )}
+                        </button>
                     ))}
                 </div>
             </div>
@@ -189,6 +205,152 @@ export function ProductFilter({ maxPrice = 1000 }: ProductFilterProps) {
         </div>
     );
 
+    // Enhanced mobile filter content
+    const mobileFilterContent = (
+        <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto space-y-6 pb-4">
+                {/* Sort Section */}
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                            <ArrowUpDown className="h-4 w-4 text-primary" />
+                        </div>
+                        <Label className="text-base font-semibold">Sort By</Label>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                        {SORT_OPTIONS.map((option) => (
+                            <button
+                                key={option.value}
+                                onClick={() => handleSortChange(option.value)}
+                                className={cn(
+                                    "flex items-center justify-between px-4 py-3 rounded-xl border transition-all",
+                                    sort === option.value
+                                        ? "border-primary bg-primary/5 text-primary"
+                                        : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                                )}
+                            >
+                                <span className="text-sm font-medium">{option.label}</span>
+                                {sort === option.value && (
+                                    <Check className="h-4 w-4" />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <Separator />
+
+                {/* Categories Section */}
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                            <SlidersHorizontal className="h-4 w-4 text-primary" />
+                        </div>
+                        <Label className="text-base font-semibold">Categories</Label>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                        {CATEGORIES.map((category) => (
+                            <button
+                                key={category.value}
+                                onClick={() => handleCategoryChange(category.value)}
+                                className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all",
+                                    selectedCategories.includes(category.value)
+                                        ? "border-primary bg-primary/5"
+                                        : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                                )}
+                            >
+                                <div className={cn(
+                                    "flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
+                                    selectedCategories.includes(category.value)
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-secondary"
+                                )}>
+                                    <category.icon className="h-5 w-5" />
+                                </div>
+                                <span className={cn(
+                                    "text-sm font-medium flex-1 text-left",
+                                    selectedCategories.includes(category.value) && "text-primary"
+                                )}>
+                                    {category.name}
+                                </span>
+                                {selectedCategories.includes(category.value) && (
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                        <Check className="h-3 w-3" />
+                                    </div>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <Separator />
+
+                {/* Price Range Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                            <DollarSign className="h-4 w-4 text-primary" />
+                        </div>
+                        <Label className="text-base font-semibold">Price Range</Label>
+                    </div>
+
+                    {/* Price display cards */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 px-4 py-3 rounded-xl border bg-secondary/30 text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Min</p>
+                            <p className="text-lg font-semibold">${priceRange[0]}</p>
+                        </div>
+                        <div className="text-muted-foreground">—</div>
+                        <div className="flex-1 px-4 py-3 rounded-xl border bg-secondary/30 text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Max</p>
+                            <p className="text-lg font-semibold">${priceRange[1]}</p>
+                        </div>
+                    </div>
+
+                    <div className="px-2 pt-2">
+                        <Slider
+                            defaultValue={[0, maxPrice]}
+                            value={priceRange}
+                            max={maxPrice}
+                            step={10}
+                            minStepsBetweenThumbs={1}
+                            onValueChange={handlePriceChange}
+                            onValueCommit={handlePriceCommit}
+                            className="py-4"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Sticky bottom actions */}
+            <div className="border-t pt-4 mt-auto space-y-3 bg-background">
+                {activeFiltersCount > 0 && (
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={clearFilters}
+                    >
+                        <X className="w-4 h-4 mr-2" />
+                        Clear All Filters
+                    </Button>
+                )}
+                <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={() => setIsOpen(false)}
+                >
+                    Show Results
+                    {activeFiltersCount > 0 && (
+                        <Badge variant="secondary" className="ml-2 bg-primary-foreground/20">
+                            {activeFiltersCount} active
+                        </Badge>
+                    )}
+                </Button>
+            </div>
+        </div>
+    );
+
     return (
         <>
             {/* Desktop Sidebar */}
@@ -196,27 +358,35 @@ export function ProductFilter({ maxPrice = 1000 }: ProductFilterProps) {
                 <div className="flex items-center gap-2 font-serif text-xl font-bold">
                     <Filter className="w-5 h-5" /> Filters
                 </div>
-                {filterContent}
+                {desktopFilterContent}
             </div>
 
             {/* Mobile Trigger */}
             <div className="lg:hidden mb-6">
                 <Sheet open={isOpen} onOpenChange={setIsOpen}>
                     <SheetTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                            <Filter className="w-4 h-4 mr-2" />
-                            Filters {activeFiltersCount > 0 && <Badge variant="secondary" className="ml-1">{activeFiltersCount}</Badge>}
+                        <Button variant="outline" className="w-full gap-2">
+                            <Filter className="w-4 h-4" />
+                            <span>Filters</span>
+                            {activeFiltersCount > 0 && (
+                                <Badge variant="default" className="ml-auto">
+                                    {activeFiltersCount}
+                                </Badge>
+                            )}
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                        <SheetHeader>
-                            <SheetTitle className="font-serif">Filters</SheetTitle>
+                    <SheetContent side="left" className="w-[320px] sm:w-[400px] flex flex-col p-0">
+                        <SheetHeader className="p-4 border-b">
+                            <SheetTitle className="font-serif text-xl flex items-center gap-2">
+                                <Filter className="w-5 h-5 text-primary" />
+                                Filters
+                            </SheetTitle>
                             <SheetDescription>
                                 Refine your search to find the perfect item.
                             </SheetDescription>
                         </SheetHeader>
-                        <div className="mt-8">
-                            {filterContent}
+                        <div className="flex-1 overflow-hidden p-4">
+                            {mobileFilterContent}
                         </div>
                     </SheetContent>
                 </Sheet>
@@ -224,3 +394,4 @@ export function ProductFilter({ maxPrice = 1000 }: ProductFilterProps) {
         </>
     );
 }
+
