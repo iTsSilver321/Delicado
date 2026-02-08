@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signout } from "@/app/(auth)/actions";
 import { User, Package, LogOut, Clock, MapPin, CreditCard, Banknote } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
     pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
@@ -63,12 +64,12 @@ export default async function ProfilePage() {
                     <div className="space-y-6">
                         <div className="bg-card rounded-2xl border p-6 flex flex-col items-center text-center space-y-4 shadow-sm">
                             <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary/20">
-                                <Image
-                                    src={profile?.avatar_url || `https://api.dicebear.com/9.x/initials/svg?seed=${profile?.full_name || 'User'}`}
-                                    alt="Avatar"
-                                    fill
-                                    className="object-cover"
-                                />
+                                <Avatar className="h-full w-full">
+                                    <AvatarImage src={profile?.avatar_url} className="object-cover" />
+                                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                                        {getInitials(profile?.full_name || "")}
+                                    </AvatarFallback>
+                                </Avatar>
                             </div>
                             <div>
                                 <h3 className="font-serif text-xl font-bold">{profile?.full_name || "Valued Customer"}</h3>

@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { DollarSign, ShoppingBag, Users, TrendingUp } from "lucide-react";
 import { getAdminStats, getRecentSales } from "./actions";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AdminDashboard() {
@@ -147,9 +147,8 @@ export default function AdminDashboard() {
                             {recentSales.map((sale) => (
                                 <div key={sale.id} className="flex items-center">
                                     <Avatar className="h-9 w-9">
-                                        <AvatarImage src={`https://api.dicebear.com/9.x/initials/svg?seed=${sale.name}`} />
                                         <AvatarFallback>
-                                            {sale.name?.charAt(0).toUpperCase()}
+                                            {getInitials(sale.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="ml-4 space-y-1">

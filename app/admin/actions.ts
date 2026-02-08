@@ -2,8 +2,31 @@
 
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { formatCurrency } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+
+async function checkAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/auth/login')
+  }
+
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    throw new Error('Unauthorized')
+  }
+}
 
 export async function getAdminStats() {
+  await checkAdmin()
+
   const { data: orders, error: ordersError } = await supabaseAdmin
     .from('orders')
     .select('total, created_at, status')
@@ -46,6 +69,8 @@ export async function getAdminStats() {
 }
 
 export async function getRecentSales() {
+  await checkAdmin()
+
   const { data: orders } = await supabaseAdmin
     .from('orders')
     .select('id, total, customer_name, customer_email, created_at')
@@ -61,6 +86,8 @@ export async function getRecentSales() {
 }
 
 export async function getCustomers() {
+  await checkAdmin()
+
   // Fetch profiles - REMOVED ORDER BY created_at WHICH DOES NOT EXIST
   const { data: profiles, error: profileError } = await supabaseAdmin
     .from('profiles')
@@ -107,6 +134,8 @@ export async function getCustomers() {
 
 export async function updateOrderStatus(orderId: string, status: string) {
   try {
+    await checkAdmin()
+    
     const { error } = await supabaseAdmin
       .from('orders')
       .update({ status })
@@ -122,6 +151,8 @@ export async function updateOrderStatus(orderId: string, status: string) {
 }
 
 export async function getCustomerOrders(email: string) {
+    await checkAdmin()
+
     // Fetch orders by email since user_id might not always be populated for guest checking out with same email
     // Or prefer user_id if we have it? Admin view usually wants ALL orders for that person.
     // Let's use Email for now as it's visible in the table.

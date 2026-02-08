@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn, getInitials } from "@/lib/utils";
 
 import { ShoppingBag, Menu, Search, ChevronDown, Bed, Shirt, UtensilsCrossed, User, LogOut, Package, Shield, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -209,7 +210,7 @@ export function Header({ user }: HeaderProps) {
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={user.user_metadata?.avatar_url} />
                                         <AvatarFallback className="bg-primary/10 text-primary">
-                                            {user.email?.charAt(0).toUpperCase()}
+                                            {getInitials(user.user_metadata?.full_name || user.email)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>

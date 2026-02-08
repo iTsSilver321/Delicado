@@ -55,27 +55,44 @@ export async function POST(request: Request) {
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
-        // Validate stock availability
-        for (const item of items) {
-            const { data: product } = await supabase
-                .from('products')
-                .select('stock_quantity, name')
-                .eq('id', item.productId)
-                .single();
+        // 1. Fetch all products from DB to get trusted prices and stock
+        const productIds = items.map(item => item.productId);
+        const { data: dbProducts, error: productsError } = await supabase
+            .from('products')
+            .select('id, name, price, stock_quantity')
+            .in('id', productIds);
 
-            if (!product) {
+        if (productsError || !dbProducts) {
+            console.error('Error fetching products:', productsError);
+            return NextResponse.json({ error: 'Failed to validate products' }, { status: 500 });
+        }
+
+        // 2. Map items to trusted DB data
+        const validatedItems = [];
+        for (const item of items) {
+            const dbProduct = dbProducts.find(p => p.id === item.productId);
+            
+            if (!dbProduct) {
                 return NextResponse.json({ error: `Product not found: ${item.name}` }, { status: 400 });
             }
 
-            if (product.stock_quantity !== null && product.stock_quantity < item.quantity) {
+            // Check stock
+            if (dbProduct.stock_quantity !== null && dbProduct.stock_quantity < item.quantity) {
                 return NextResponse.json({ 
-                    error: `Insufficient stock for ${product.name}. Available: ${product.stock_quantity}` 
+                    error: `Insufficient stock for ${dbProduct.name}. Available: ${dbProduct.stock_quantity}` 
                 }, { status: 400 });
             }
+
+            validatedItems.push({
+                ...item,
+                // OVERRIDE price and name from DB to prevent manipulation
+                price: dbProduct.price, 
+                name: dbProduct.name 
+            });
         }
 
-        // Calculate totals
-        const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        // 3. Calculate totals using TRUSTED prices
+        const subtotal = validatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
         const shipping = subtotal >= 10000 ? 0 : 999; // Free shipping over $100
         const total = subtotal + shipping;
 
@@ -103,13 +120,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
         }
 
-        // Create order items
-        const orderItems = items.map(item => ({
+        // Create order items using VALIDATED items
+        const orderItems = validatedItems.map(item => ({
             order_id: order.id,
             product_id: item.productId,
             product_name: item.name,
             quantity: item.quantity,
-            unit_price: item.price,
+            unit_price: item.price, // Trusted price
             customization: item.isCustomized ? item.customization : null,
         }));
 
@@ -126,7 +143,7 @@ export async function POST(request: Request) {
         // Handle Cash on Delivery
         if (paymentMethod === 'cod') {
             // Decrement stock immediately for COD orders
-            for (const item of items) {
+            for (const item of validatedItems) {
                 await supabase
                     .from('products')
                     .update({ stock_quantity: supabase.rpc('greatest', [0, `stock_quantity - ${item.quantity}`]) as any })
@@ -134,7 +151,7 @@ export async function POST(request: Request) {
             }
 
             // Fallback: direct decrement
-            for (const item of items) {
+            for (const item of validatedItems) {
                 const { data: product } = await supabase
                     .from('products')
                     .select('stock_quantity')
@@ -172,7 +189,7 @@ export async function POST(request: Request) {
         // Stripe checkout
         const origin = (await headers()).get('origin') || 'http://localhost:3000';
 
-        const lineItems = items.map(item => {
+        const lineItems = validatedItems.map(item => {
             // Only use image if it's a valid full URL (Stripe requires absolute URLs)
             const imageUrl = item.image && item.image.startsWith('http') ? item.image : null;
             
@@ -186,7 +203,7 @@ export async function POST(request: Request) {
                             : 'Standard product',
                         ...(imageUrl ? { images: [imageUrl] } : {}),
                     },
-                    unit_amount: item.price,
+                    unit_amount: item.price, // Trusted price
                 },
                 quantity: item.quantity,
             };
