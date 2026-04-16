@@ -4,35 +4,35 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Heart, Sparkles, Award, Users, ArrowRight, Scissors, Palette, Star } from "lucide-react";
+import { Heart, Sparkles, Award, Users, ArrowRight, Star } from "lucide-react";
 
 const values = [
     {
         icon: Heart,
         title: "Crafted with Love",
-        description: "Every stitch is placed with care. Our artisans pour their passion into each piece, ensuring your personalized item is truly special."
+        description: "Every stitch is placed with care. Our artisans pour their passion into each piece, ensuring your bedding feels as special as the moments you spend in it."
     },
     {
         icon: Sparkles,
         title: "Premium Quality",
-        description: "We use only the finest materials—luxurious fabrics and vibrant, colorfast threads that maintain their beauty wash after wash."
+        description: "We use only the finest long-staple cotton with 300+ thread counts and vibrant, colorfast embroidery threads that maintain their beauty wash after wash."
     },
     {
         icon: Award,
         title: "Attention to Detail",
-        description: "From the precision of our embroidery machines to our meticulous quality checks, we obsess over the details so you don't have to."
+        description: "From the precision of our high-density embroidery stitching to our meticulous quality checks, we obsess over the details so you don't have to."
     },
     {
         icon: Users,
         title: "Customer First",
-        description: "Your satisfaction is our priority. We're here to help you create the perfect personalized gift or home accent."
+        description: "Your satisfaction is our priority. From carefully packaged shipments to responsive support, every touchpoint is designed with you in mind."
     }
 ];
 
 const stats = [
-    { value: "50K+", label: "Happy Customers" },
-    { value: "100K+", label: "Items Embroidered" },
-    { value: "30+", label: "Thread Colors" },
+    { value: "10K+", label: "Happy Customers" },
+    { value: "25K+", label: "Sets Sold" },
+    { value: "2", label: "Signature Designs" },
     { value: "5★", label: "Average Rating" }
 ];
 
@@ -59,14 +59,14 @@ export default function AboutPage() {
                         className="space-y-4"
                     >
                         <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mx-auto">
-                            <Scissors className="w-4 h-4" />
+                            <Sparkles className="w-4 h-4" />
                             <span className="text-sm font-medium">Our Story</span>
                         </motion.div>
                         <motion.h1 variants={fadeInUp} className="font-serif text-5xl md:text-6xl font-bold">
                             About <span className="text-primary">Delicado</span>
                         </motion.h1>
                         <motion.p variants={fadeInUp} className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                            Where timeless craftsmanship meets modern personalization. We believe every thread tells a story—let us help you tell yours.
+                            Where timeless craftsmanship meets modern elegance. We believe every thread tells a story—and every home deserves something extraordinary.
                         </motion.p>
                     </motion.div>
                 </div>
@@ -83,22 +83,22 @@ export default function AboutPage() {
                         className="space-y-6"
                     >
                         <h2 className="font-serif text-4xl font-bold">
-                            Bringing <span className="text-primary">Personalization</span> to Life
+                            Bringing <span className="text-primary">Artisan Embroidery</span> Home
                         </h2>
                         <div className="space-y-4 text-muted-foreground">
                             <p>
-                                Delicado was born from a simple idea: everyone deserves to own something truly unique. In a world of mass production, we wanted to bring back the art of personalization—the kind that makes a pillowcase feel like an heirloom, or a simple robe feel like a luxury garment.
+                                Delicado was born from a simple belief: your bedroom should feel like a sanctuary. In a world of mass-produced basics, we wanted to bring back the art of beautiful, meaningful textiles—the kind that transform a bed into a centerpiece.
                             </p>
                             <p>
-                                Our journey began in a small studio with a single embroidery machine and a passion for beautiful textiles. Today, we've grown into a team of dedicated artisans and designers, but our mission remains the same: to help you create meaningful, personalized pieces that celebrate life's special moments.
+                                Our journey began in a small studio with a single embroidery machine and a passion for exquisite details. Today, we've grown into a team of dedicated artisans and designers, but our mission remains the same: to craft premium embroidered bedding that elevates everyday living.
                             </p>
                             <p>
-                                What sets us apart is our revolutionary visual customizer. We believe you should see exactly what you're getting before you order. No more guessing, no more disappointment—just beautiful, personalized embroidery, exactly as you imagined it.
+                                Each Delicado set features hand-finished embroidery on luxurious long-staple cotton. Our two signature design families—Branch and Flower—are available in a curated palette of colors, allowing you to find the perfect match for your space.
                             </p>
                         </div>
-                        <Button asChild size="lg" className="gap-2">
-                            <Link href="/collections">
-                                Start Creating
+                        <Button asChild size="lg" className="gap-2 rounded-xl">
+                            <Link href="/shop">
+                                Explore the Collection
                                 <ArrowRight className="w-4 h-4" />
                             </Link>
                         </Button>
@@ -111,13 +111,18 @@ export default function AboutPage() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="relative"
                     >
-                        <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/10 via-secondary to-primary/5 flex items-center justify-center overflow-hidden">
-                            <div className="text-center p-8 space-y-4">
-                                <div className="w-24 h-24 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                                    <Palette className="w-12 h-12 text-primary" />
-                                </div>
-                                <p className="font-serif text-2xl font-bold">"See it before you stitch it."</p>
-                                <p className="text-muted-foreground">Our promise to you</p>
+                        <div className="aspect-square rounded-2xl overflow-hidden relative">
+                            <Image
+                                src="/assets/white_branch.jpeg"
+                                alt="Delicado embroidered bedding on a bed"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 1024px) 100vw, 50vw"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                            <div className="absolute bottom-6 left-6 right-6 text-white">
+                                <p className="font-serif text-2xl font-bold">"Where every detail matters."</p>
+                                <p className="text-white/80 text-sm mt-1">Our promise to you</p>
                             </div>
                         </div>
                         {/* Decorative elements */}
@@ -159,7 +164,7 @@ export default function AboutPage() {
                 >
                     <h2 className="font-serif text-4xl font-bold mb-4">What We <span className="text-primary">Stand For</span></h2>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Our values guide everything we do, from the materials we source to the way we treat our customers.
+                        Our values guide everything we do, from the cotton we source to the way we package every order.
                     </p>
                 </motion.div>
 
@@ -203,10 +208,10 @@ export default function AboutPage() {
                             ))}
                         </div>
                         <blockquote className="font-serif text-2xl md:text-3xl font-medium mb-6">
-                            "The pillowcases I ordered for my daughter's wedding were absolutely stunning. The real-time preview was so accurate—exactly what I saw is exactly what I got!"
+                            "The embroidery is even more stunning in person. My bedroom feels like a luxury hotel now. Absolutely worth every penny."
                         </blockquote>
                         <div className="text-muted-foreground">
-                            <span className="font-medium text-foreground">Sarah M.</span> — New York, NY
+                            <span className="font-medium text-foreground">Sarah M.</span> — Verified Purchase
                         </div>
                     </div>
                 </motion.div>
@@ -220,18 +225,18 @@ export default function AboutPage() {
                     viewport={{ once: true }}
                     className="bg-primary rounded-2xl p-8 md:p-12 text-center text-primary-foreground"
                 >
-                    <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Ready to Create Something Special?</h2>
+                    <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4">Ready to Elevate Your Bedroom?</h2>
                     <p className="text-primary-foreground/80 mb-6 max-w-2xl mx-auto">
-                        Browse our collection and start designing your personalized embroidered items today.
+                        Discover our signature Branch and Flower collections. Premium cotton, exquisite embroidery, delivered to your door.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button asChild size="lg" variant="secondary" className="gap-2">
-                            <Link href="/collections">
+                        <Button asChild size="lg" variant="secondary" className="gap-2 rounded-xl">
+                            <Link href="/shop">
                                 Shop Now
                                 <ArrowRight className="w-4 h-4" />
                             </Link>
                         </Button>
-                        <Button asChild size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+                        <Button asChild size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10 rounded-xl">
                             <Link href="/contact">
                                 Contact Us
                             </Link>

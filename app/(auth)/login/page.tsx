@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { login, signInWithGoogle } from "../actions";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const initialState = {
     error: "",
@@ -19,13 +19,14 @@ const initialState = {
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" className="w-full h-11 text-base shadow-md hover:shadow-lg transition-all" disabled={pending}>
+        <Button type="submit" className="w-full h-12 text-base shadow-md hover:shadow-lg transition-all rounded-xl" disabled={pending}>
             {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Sign In"}
         </Button>
     );
 }
 
 export default function LoginPage() {
+    const [showPassword, setShowPassword] = useState(false);
     const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
         const result = await login(formData);
         if (result?.error) {
@@ -56,8 +57,8 @@ export default function LoginPage() {
                 <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input id="email" name="email" type="email" placeholder="hello@example.com" required className="pl-10 h-11 bg-secondary/20 border-secondary-foreground/10" />
+                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                        <Input id="email" name="email" type="email" placeholder="hello@example.com" required className="pl-10 h-12 rounded-xl bg-secondary/20 border-secondary-foreground/10" />
                     </div>
                 </div>
                 <div className="space-y-2">
@@ -66,14 +67,28 @@ export default function LoginPage() {
                         <Link href="#" className="text-sm text-primary hover:underline">Forgot password?</Link>
                     </div>
                     <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input id="password" name="password" type="password" required className="pl-10 h-11 bg-secondary/20 border-secondary-foreground/10" />
+                        <Lock className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            required
+                            className="pl-10 pr-10 h-12 rounded-xl bg-secondary/20 border-secondary-foreground/10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground transition-colors"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
                     </div>
                 </div>
 
                 {state?.error && (
-                    <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
+                    <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-sm flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
                         {state.error}
                     </div>
                 )}
@@ -91,11 +106,14 @@ export default function LoginPage() {
             </div>
 
             <form action={signInWithGoogle}>
-                <Button variant="outline" type="submit" className="w-full h-11 hover:bg-secondary/50">
-                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+                <Button variant="outline" type="submit" className="w-full h-12 rounded-xl hover:bg-secondary/50">
+                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                     </svg>
-                    Google
+                    Continue with Google
                 </Button>
             </form>
 

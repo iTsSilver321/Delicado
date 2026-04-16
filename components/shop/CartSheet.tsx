@@ -11,165 +11,199 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
+import { Plus, Minus, ShoppingBag, ArrowRight, Trash2, Truck, Undo2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+
+const FREE_SHIPPING_THRESHOLD = 10000; // $100 in cents
 
 export function CartSheet() {
     const router = useRouter();
     const { items, isOpen, closeCart, removeItem, updateQuantity } = useCartStore();
+    const [confirmingRemove, setConfirmingRemove] = useState<string | null>(null);
 
     const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    const shipping = subtotal >= 10000 ? 0 : 999;
+    const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 999;
     const total = subtotal + shipping;
+    const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+    const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
+    const shippingProgress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
 
     const handleCheckout = () => {
         closeCart();
         router.push('/checkout');
     };
 
+    const handleRemove = (itemId: string) => {
+        if (confirmingRemove === itemId) {
+            removeItem(itemId);
+            setConfirmingRemove(null);
+        } else {
+            setConfirmingRemove(itemId);
+            setTimeout(() => setConfirmingRemove((prev) => prev === itemId ? null : prev), 3000);
+        }
+    };
+
     return (
         <Sheet open={isOpen} onOpenChange={closeCart}>
-            <SheetContent className="w-full sm:w-[540px] flex flex-col pr-0 sm:max-w-none">
-                <SheetHeader className="px-6 border-b pb-4">
-                    <SheetTitle className="flex items-center gap-2 font-serif text-2xl">
-                        <ShoppingBag className="w-5 h-5" />
-                        Your Creation
-                    </SheetTitle>
-                    <SheetDescription>
-                        Review your custom embroidered items before checkout.
+            <SheetContent className="w-full sm:w-[440px] flex flex-col pr-0 sm:max-w-none">
+                <SheetHeader className="px-6 pb-4 border-b">
+                    <SheetTitle className="font-serif text-xl font-bold">Your Bag</SheetTitle>
+                    <SheetDescription className="text-sm text-muted-foreground">
+                        {items.length === 0
+                            ? "Your cart is empty"
+                            : `${totalItems} item${totalItems === 1 ? '' : 's'}`}
                     </SheetDescription>
                 </SheetHeader>
 
                 {items.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center space-y-4 px-6">
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                            <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+                        <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center">
+                            <ShoppingBag className="w-8 h-8 text-muted-foreground/30" />
                         </div>
-                        <p className="text-xl font-medium text-muted-foreground">Your cart is empty</p>
-                        <Button variant="outline" onClick={closeCart}>
-                            Start Customizing
+                        <p className="text-sm text-muted-foreground">Nothing here yet</p>
+                        <Button size="sm" className="rounded-full" onClick={closeCart}>
+                            Start Shopping
                         </Button>
                     </div>
                 ) : (
-                    <ScrollArea className="flex-1 px-6">
-                        <div className="space-y-6 py-6">
-                            {items.map((item) => (
-                                <div key={item.id} className="flex gap-4">
-                                    {/* Product Image */}
-                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border bg-muted shrink-0">
-                                        <img
-                                            src={item.image}
-                                            alt={item.name}
-                                            className="object-cover w-full h-full"
-                                        />
-                                    </div>
-
-                                    {/* Details */}
-                                    <div className="flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-semibold text-lg leading-none">{item.name}</h3>
-                                                <p className="font-medium">
-                                                    ${((item.price * item.quantity) / 100).toFixed(2)}
-                                                </p>
-                                            </div>
-
-                                            {/* Customization Badges */}
-                                            {item.isCustomized && item.customization?.text && (
-                                                <div className="mt-2 text-sm text-muted-foreground space-y-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-foreground">"{item.customization.text}"</span>
-                                                        <span className="px-1.5 py-0.5 rounded-full bg-secondary text-[10px] uppercase tracking-wide">
-                                                            {item.customization.font}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs">
-                                                        <span
-                                                            className="w-3 h-3 rounded-full border shadow-sm"
-                                                            style={{ backgroundColor: item.customization.color }}
-                                                        />
-                                                        <span>Thread Color</span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {!item.isCustomized && (
-                                                <p className="mt-1 text-sm text-muted-foreground">Standard product</p>
-                                            )}
-                                        </div>
-
-                                        {/* Controls */}
-                                        <div className="flex items-center justify-between mt-3">
-                                            <div className="flex items-center bg-secondary rounded-md">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 rounded-r-none hover:bg-transparent"
-                                                    onClick={() => updateQuantity(item.id, -1)}
-                                                >
-                                                    <Minus className="w-3 h-3" />
-                                                </Button>
-                                                <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 rounded-l-none hover:bg-transparent"
-                                                    onClick={() => updateQuantity(item.id, 1)}
-                                                >
-                                                    <Plus className="w-3 h-3" />
-                                                </Button>
-                                            </div>
-
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-muted-foreground hover:text-destructive h-8 px-2"
-                                                onClick={() => removeItem(item.id)}
-                                            >
-                                                <Trash2 className="w-4 h-4 mr-2" />
-                                                Remove
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                    <>
+                        {/* Free Shipping Progress (compact) */}
+                        <div className="px-6 pt-4 pb-2">
+                            <div className="flex items-center gap-2 text-xs mb-1.5">
+                                <Truck className="w-3.5 h-3.5 text-primary shrink-0" />
+                                {remaining <= 0 ? (
+                                    <span className="text-primary font-medium">Free shipping unlocked! 🎉</span>
+                                ) : (
+                                    <span className="text-muted-foreground">
+                                        <span className="font-medium text-foreground">${(remaining / 100).toFixed(2)}</span> away from free shipping
+                                    </span>
+                                )}
+                            </div>
+                            <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-primary rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${shippingProgress}%` }}
+                                    transition={{ duration: 0.6, ease: "easeOut" }}
+                                />
+                            </div>
                         </div>
-                    </ScrollArea>
+
+                        <ScrollArea className="flex-1 px-6">
+                            <AnimatePresence>
+                                <div className="divide-y py-2">
+                                    {items.map((item) => (
+                                        <motion.div
+                                            key={item.id}
+                                            layout
+                                            exit={{ opacity: 0, x: -30 }}
+                                            className="flex gap-4 py-4"
+                                        >
+                                            <div className="relative w-18 h-20 overflow-hidden rounded-lg bg-secondary/30 shrink-0">
+                                                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="72px" />
+                                            </div>
+
+                                            <div className="flex-1 flex flex-col justify-between min-w-0">
+                                                <div className="flex justify-between items-start">
+                                                    <h3 className="font-serif text-sm font-semibold truncate pr-2">{item.name}</h3>
+                                                    <p className="text-sm font-semibold text-primary shrink-0">
+                                                        ${((item.price * item.quantity) / 100).toFixed(2)}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex items-center justify-between mt-2">
+                                                    <div className="flex items-center bg-secondary rounded-full border shadow-sm">
+                                                        <button
+                                                            className="h-7 w-7 flex items-center justify-center hover:text-primary transition-colors"
+                                                            onClick={() => updateQuantity(item.id, -1)}
+                                                        >
+                                                            <Minus className="w-3 h-3" />
+                                                        </button>
+                                                        <span className="w-6 text-center text-xs font-medium">{item.quantity}</span>
+                                                        <button
+                                                            className="h-7 w-7 flex items-center justify-center hover:text-primary transition-colors"
+                                                            onClick={() => updateQuantity(item.id, 1)}
+                                                        >
+                                                            <Plus className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Remove with confirmation */}
+                                                    <AnimatePresence mode="wait">
+                                                        {confirmingRemove === item.id ? (
+                                                            <motion.div
+                                                                key="confirm"
+                                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                exit={{ opacity: 0, scale: 0.9 }}
+                                                                className="flex items-center gap-1.5"
+                                                            >
+                                                                <button
+                                                                    onClick={() => handleRemove(item.id)}
+                                                                    className="text-[11px] font-medium text-destructive hover:underline"
+                                                                >
+                                                                    Confirm
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setConfirmingRemove(null)}
+                                                                    className="text-muted-foreground hover:text-foreground"
+                                                                >
+                                                                    <Undo2 className="w-3 h-3" />
+                                                                </button>
+                                                            </motion.div>
+                                                        ) : (
+                                                            <motion.button
+                                                                key="remove"
+                                                                initial={{ opacity: 0 }}
+                                                                animate={{ opacity: 1 }}
+                                                                exit={{ opacity: 0 }}
+                                                                className="text-muted-foreground hover:text-destructive transition-colors"
+                                                                onClick={() => handleRemove(item.id)}
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </motion.button>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </AnimatePresence>
+                        </ScrollArea>
+                    </>
                 )}
 
                 {items.length > 0 && (
-                    <SheetFooter className="border-t p-6 bg-background space-y-4 sm:space-y-0 flex-col !items-stretch">
-                        <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-base">
-                                <span className="text-muted-foreground">Subtotal</span>
-                                <span>${(subtotal / 100).toFixed(2)}</span>
+                    <SheetFooter className="border-t p-6 bg-background flex-col !items-stretch space-y-4">
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Items ({totalItems})</span>
+                                <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between text-base">
+                            <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Shipping</span>
-                                <span className={shipping === 0 ? "text-emerald-600 font-medium" : ""}>
+                                <span className={shipping === 0 ? "text-primary font-medium" : ""}>
                                     {shipping === 0 ? "Free" : `$${(shipping / 100).toFixed(2)}`}
                                 </span>
                             </div>
-                            {shipping > 0 && (
-                                <p className="text-xs text-muted-foreground">Free shipping on orders over $100</p>
-                            )}
                             <Separator className="my-2" />
-                            <div className="flex justify-between text-xl font-serif font-bold">
-                                <span>Total</span>
-                                <span>${(total / 100).toFixed(2)}</span>
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-sm font-medium">Total</span>
+                                <span className="font-serif text-xl font-bold text-primary">${(total / 100).toFixed(2)}</span>
                             </div>
                         </div>
 
-                        <Button
-                            size="lg"
-                            className="w-full text-lg h-12"
-                            onClick={handleCheckout}
-                        >
-                            Proceed to Checkout
+                        <Button size="lg" className="w-full shadow-md rounded-xl" onClick={handleCheckout}>
+                            Checkout
                             <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
-                        <Button variant="outline" className="w-full" onClick={closeCart}>
+                        <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={closeCart}>
                             Continue Shopping
                         </Button>
                     </SheetFooter>

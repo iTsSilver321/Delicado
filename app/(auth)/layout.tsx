@@ -12,31 +12,30 @@ export default function AuthLayout({
             {/* Mobile Background - visible only on mobile/tablet */}
             <div className="lg:hidden fixed inset-0 -z-10">
                 <Image
-                    src="https://images.unsplash.com/photo-1621600411688-4be93cd68504?q=80&w=2000&auto=format&fit=crop"
-                    alt="Delicado Embroidery"
+                    src="/assets/white-pink_tucked_flower.jpeg"
+                    alt="Delicado Bedding"
                     fill
                     className="object-cover"
                     priority
                 />
-                {/* Gradient overlay for better readability */}
                 <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/90 to-background/95 dark:from-background/98 dark:via-background/95 dark:to-background/98" />
             </div>
 
-            {/* Left: Product Showcase / Image - Desktop only */}
+            {/* Left: Product Showcase - Desktop only */}
             <div className="hidden lg:block relative bg-stone-900">
                 <div className="absolute inset-0 bg-black/20 z-10" />
                 <Image
-                    src="https://images.unsplash.com/photo-1621600411688-4be93cd68504?q=80&w=2000&auto=format&fit=crop"
-                    alt="Delicado Embroidery"
+                    src="/assets/white-pink_tucked_flower.jpeg"
+                    alt="Delicado Embroidered Bedding"
                     fill
                     className="object-cover opacity-80"
                     priority
                 />
                 <div className="absolute bottom-12 left-12 z-20 text-white max-w-lg">
-                    <h2 className="text-5xl font-serif font-bold mb-6 tracking-tight">Crafted for You.</h2>
+                    <h2 className="text-5xl font-serif font-bold mb-6 tracking-tight">Artisan Embroidery,<br/>Timeless Elegance.</h2>
                     <p className="text-xl font-light opacity-90 leading-relaxed text-stone-200">
-                        Experience the magic of seeing your design before it's stitched.
-                        Luxury bedding, clothing, and home goods personalized by you.
+                        Premium cotton bedding adorned with exquisite hand-finished
+                        embroidery. Crafted for those who appreciate the finer details.
                     </p>
                 </div>
             </div>
@@ -53,12 +52,11 @@ export default function AuthLayout({
                     {children}
                 </div>
 
-                {/* Decorative elements for mobile */}
+                {/* Decorative tagline for mobile */}
                 <div className="lg:hidden absolute bottom-6 left-0 right-0 text-center">
-                    <p className="text-sm text-muted-foreground">Premium Embroidery • Made with ❤️</p>
+                    <p className="text-sm text-muted-foreground">Crafted with care, delivered with love.</p>
                 </div>
             </div>
         </div>
     )
 }
-

@@ -1,60 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface CustomizationState {
-  text: string;
-  font: string;
-  color: string;
-  textSize: number; // 0.5 to 1.5 scale factor
-  isEditingText: boolean;
-  position: { x: number; y: number };
-}
-
-// Customizer Store (Transient state for the editor)
-export interface CustomizerStore extends CustomizationState {
-  setText: (text: string) => void;
-  setFont: (font: string) => void;
-  setColor: (color: string) => void;
-  setTextSize: (size: number) => void;
-  setIsEditingText: (isEditing: boolean) => void;
-  setPosition: (position: { x: number; y: number }) => void;
-  reset: () => void;
-}
-
-export const useCustomizerStore = create<CustomizerStore>((set) => ({
-  text: 'Your Name',
-  font: 'Playfair Display',
-  color: '#D4AF37', // Gold default
-  textSize: 1.0, // Default size
-  isEditingText: false,
-  position: { x: 50, y: 50 }, // Center
-  setText: (text) => set({ text }),
-  setFont: (font) => set({ font }),
-  setColor: (color) => set({ color }),
-  setTextSize: (textSize) => set({ textSize }),
-  setIsEditingText: (isEditingText) => set({ isEditingText }),
-  setPosition: (position) => set({ position }),
-  reset: () =>
-    set({
-      text: 'Your Name',
-      font: 'Playfair Display',
-      color: '#D4AF37',
-      textSize: 1.0,
-      isEditingText: false,
-      position: { x: 50, y: 50 },
-    }),
-}));
-
 // Cart Store (Persisted state)
 export interface CartItem {
-  id: string; // Unique ID for the cart item (product ID + randomization/hash)
-  productId: string;
+  id: string; // product id
+  slug: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
-  customization: CustomizationState;
-  isCustomized?: boolean;
 }
 
 interface CartStore {
@@ -76,9 +30,7 @@ export const useCartStore = create<CartStore>()(
       addItem: (newItem) =>
         set((state) => {
           const existingItem = state.items.find(
-            (item) =>
-              item.productId === newItem.productId &&
-              JSON.stringify(item.customization) === JSON.stringify(newItem.customization)
+            (item) => item.id === newItem.id
           );
 
           if (existingItem) {
@@ -114,8 +66,6 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'delicado-cart-storage',
-      // We don't persist 'isOpen' usually, but for simplicity we keep all. 
-      // Better to partially persist, but full persist is fine for MVP.
       partialize: (state) => ({ items: state.items }),
     }
   )

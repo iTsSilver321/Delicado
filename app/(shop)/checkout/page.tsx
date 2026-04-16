@@ -16,11 +16,9 @@ import {
     ShoppingBag,
     CreditCard,
     Banknote,
-    Truck,
     ArrowLeft,
-    Package,
-    AlertCircle,
-    Loader2
+    Loader2,
+    ChevronRight
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -56,7 +54,7 @@ export default function CheckoutPage() {
     if (!mounted) {
         return (
             <div className="container py-16 flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
         );
     }
@@ -64,18 +62,16 @@ export default function CheckoutPage() {
     if (items.length === 0) {
         return (
             <div className="container py-16 min-h-[60vh]">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="max-w-md mx-auto text-center space-y-6"
-                >
-                    <ShoppingBag className="w-16 h-16 mx-auto text-muted-foreground/40" />
+                <div className="max-w-md mx-auto text-center space-y-6">
+                    <div className="w-24 h-24 rounded-full bg-secondary/60 flex items-center justify-center mx-auto">
+                        <ShoppingBag className="w-10 h-10 text-muted-foreground/30" />
+                    </div>
                     <h1 className="font-serif text-2xl font-bold">Your cart is empty</h1>
-                    <p className="text-muted-foreground">Add some items to checkout.</p>
-                    <Button asChild>
-                        <Link href="/collections">Browse Products</Link>
+                    <p className="text-sm text-muted-foreground">Add items to your cart to checkout.</p>
+                    <Button asChild className="rounded-full shadow-md">
+                        <Link href="/shop">Browse Products</Link>
                     </Button>
-                </motion.div>
+                </div>
             </div>
         );
     }
@@ -121,7 +117,6 @@ export default function CheckoutPage() {
                 clearCart();
                 router.push(data.redirectUrl);
             } else if (data.redirectUrl) {
-                // Redirect to Stripe Checkout
                 window.location.href = data.redirectUrl;
             }
         } catch (error: any) {
@@ -133,33 +128,30 @@ export default function CheckoutPage() {
     return (
         <div className="container py-10 md:py-16">
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.4 }}
             >
-                <Link
-                    href="/collections"
-                    className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Continue Shopping
-                </Link>
+                {/* Breadcrumb */}
+                <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+                    <Link href="/cart" className="hover:text-foreground transition-colors flex items-center gap-1">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to cart
+                    </Link>
+                </nav>
 
-                <h1 className="font-serif text-3xl md:text-4xl font-bold mb-8">Checkout</h1>
+                <h1 className="font-serif text-3xl md:text-4xl font-bold mb-10">Checkout</h1>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="grid lg:grid-cols-[1fr_400px] gap-12">
+                    <div className="grid lg:grid-cols-[1fr_380px] gap-12 lg:gap-16">
                         {/* Left: Form */}
-                        <div className="space-y-8">
+                        <div className="space-y-10">
                             {/* Contact Info */}
-                            <div className="bg-card rounded-2xl border p-6 space-y-4">
-                                <h2 className="font-serif text-xl font-bold flex items-center gap-2">
-                                    <Package className="w-5 h-5 text-primary" />
-                                    Contact Information
-                                </h2>
+                            <div className="space-y-5">
+                                <h2 className="font-serif text-xl font-semibold">Contact Information</h2>
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="name">Full Name *</Label>
+                                        <Label htmlFor="name" className="text-sm">Full Name *</Label>
                                         <Input
                                             id="name"
                                             value={customerInfo.name}
@@ -169,7 +161,7 @@ export default function CheckoutPage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="email">Email *</Label>
+                                        <Label htmlFor="email" className="text-sm">Email *</Label>
                                         <Input
                                             id="email"
                                             type="email"
@@ -180,7 +172,7 @@ export default function CheckoutPage() {
                                         />
                                     </div>
                                     <div className="space-y-2 md:col-span-2">
-                                        <Label htmlFor="phone">Phone *</Label>
+                                        <Label htmlFor="phone" className="text-sm">Phone *</Label>
                                         <Input
                                             id="phone"
                                             type="tel"
@@ -194,14 +186,11 @@ export default function CheckoutPage() {
                             </div>
 
                             {/* Shipping Address */}
-                            <div className="bg-card rounded-2xl border p-6 space-y-4">
-                                <h2 className="font-serif text-xl font-bold flex items-center gap-2">
-                                    <Truck className="w-5 h-5 text-primary" />
-                                    Shipping Address
-                                </h2>
+                            <div className="space-y-5">
+                                <h2 className="font-serif text-xl font-semibold">Shipping Address</h2>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="address1">Address Line 1 *</Label>
+                                        <Label htmlFor="address1" className="text-sm">Address *</Label>
                                         <Input
                                             id="address1"
                                             value={customerInfo.address.line1}
@@ -214,7 +203,7 @@ export default function CheckoutPage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="address2">Address Line 2</Label>
+                                        <Label htmlFor="address2" className="text-sm">Apt, Suite, etc.</Label>
                                         <Input
                                             id="address2"
                                             value={customerInfo.address.line2}
@@ -227,7 +216,7 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="city">City *</Label>
+                                            <Label htmlFor="city" className="text-sm">City *</Label>
                                             <Input
                                                 id="city"
                                                 value={customerInfo.address.city}
@@ -240,7 +229,7 @@ export default function CheckoutPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="state">State</Label>
+                                            <Label htmlFor="state" className="text-sm">State</Label>
                                             <Input
                                                 id="state"
                                                 value={customerInfo.address.state}
@@ -252,7 +241,7 @@ export default function CheckoutPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="postal">Postal Code *</Label>
+                                            <Label htmlFor="postal" className="text-sm">Postal Code *</Label>
                                             <Input
                                                 id="postal"
                                                 value={customerInfo.address.postal_code}
@@ -269,48 +258,47 @@ export default function CheckoutPage() {
                             </div>
 
                             {/* Payment Method */}
-                            <div className="bg-card rounded-2xl border p-6 space-y-4">
-                                <h2 className="font-serif text-xl font-bold flex items-center gap-2">
-                                    <CreditCard className="w-5 h-5 text-primary" />
-                                    Payment Method
-                                </h2>
+                            <div className="space-y-5">
+                                <h2 className="font-serif text-xl font-semibold">Payment Method</h2>
                                 <RadioGroup
                                     value={paymentMethod}
                                     onValueChange={(v) => setPaymentMethod(v as "stripe" | "cod")}
                                     className="space-y-3"
                                 >
                                     <label
-                                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "stripe"
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border hover:border-primary/50"
-                                            }`}
+                                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                            paymentMethod === "stripe"
+                                                ? "border-primary bg-primary/5 shadow-sm"
+                                                : "border-border hover:border-primary/30"
+                                        }`}
                                     >
                                         <RadioGroupItem value="stripe" id="stripe" />
-                                        <CreditCard className="w-6 h-6 text-primary" />
+                                        <CreditCard className="w-5 h-5 text-primary" />
                                         <div className="flex-1">
-                                            <p className="font-medium">Pay with Card</p>
-                                            <p className="text-sm text-muted-foreground">Secure payment via Stripe</p>
+                                            <p className="text-sm font-medium">Pay with Card</p>
+                                            <p className="text-xs text-muted-foreground">Secure payment via Stripe</p>
                                         </div>
                                     </label>
                                     <label
-                                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === "cod"
-                                                ? "border-primary bg-primary/5"
-                                                : "border-border hover:border-primary/50"
-                                            }`}
+                                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                            paymentMethod === "cod"
+                                                ? "border-primary bg-primary/5 shadow-sm"
+                                                : "border-border hover:border-primary/30"
+                                        }`}
                                     >
                                         <RadioGroupItem value="cod" id="cod" />
-                                        <Banknote className="w-6 h-6 text-emerald-600" />
+                                        <Banknote className="w-5 h-5 text-primary" />
                                         <div className="flex-1">
-                                            <p className="font-medium">Cash on Delivery</p>
-                                            <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
+                                            <p className="text-sm font-medium">Cash on Delivery</p>
+                                            <p className="text-xs text-muted-foreground">Pay when you receive your order</p>
                                         </div>
                                     </label>
                                 </RadioGroup>
                             </div>
 
                             {/* Notes */}
-                            <div className="bg-card rounded-2xl border p-6 space-y-4">
-                                <h2 className="font-serif text-xl font-bold">Order Notes (Optional)</h2>
+                            <div className="space-y-3">
+                                <h2 className="font-serif text-xl font-semibold">Order Notes</h2>
                                 <Textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
@@ -322,85 +310,68 @@ export default function CheckoutPage() {
 
                         {/* Right: Order Summary */}
                         <div className="lg:sticky lg:top-24 h-fit">
-                            <div className="bg-card rounded-2xl border p-6 space-y-6">
-                                <h2 className="font-serif text-xl font-bold">Order Summary</h2>
+                            <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-5">
+                                <h2 className="font-serif text-lg font-bold">Order Summary</h2>
 
-                                <div className="space-y-4 max-h-[300px] overflow-y-auto">
+                                <div className="space-y-3 max-h-[300px] overflow-y-auto">
                                     {items.map((item) => (
-                                        <div key={item.id} className="flex gap-4">
-                                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-secondary/30 flex-shrink-0">
+                                        <div key={item.id} className="flex gap-3 items-center">
+                                            <div className="relative w-12 h-14 overflow-hidden rounded-lg bg-secondary/30 flex-shrink-0">
                                                 {item.image && (
-                                                    <Image
-                                                        src={item.image}
-                                                        alt={item.name}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
+                                                    <Image src={item.image} alt={item.name} fill className="object-cover" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium truncate">{item.name}</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Qty: {item.quantity}
-                                                    {item.isCustomized && item.customization?.text && (
-                                                        <span className="ml-2">• "{item.customization.text}"</span>
-                                                    )}
-                                                </p>
+                                                <p className="text-sm font-medium truncate">{item.name}</p>
+                                                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                             </div>
-                                            <p className="font-medium">
+                                            <p className="text-sm font-medium shrink-0">
                                                 ${((item.price * item.quantity) / 100).toFixed(2)}
                                             </p>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="border-t pt-4 space-y-2">
-                                    <div className="flex justify-between text-sm">
+                                <div className="border-t pt-4 space-y-2 text-sm">
+                                    <div className="flex justify-between">
                                         <span className="text-muted-foreground">Subtotal</span>
-                                        <span>${(subtotal / 100).toFixed(2)}</span>
+                                        <span className="font-medium">${(subtotal / 100).toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between text-sm">
+                                    <div className="flex justify-between">
                                         <span className="text-muted-foreground">Shipping</span>
-                                        <span>{shipping === 0 ? "Free" : `$${(shipping / 100).toFixed(2)}`}</span>
+                                        <span className={shipping === 0 ? "text-primary font-medium" : ""}>
+                                            {shipping === 0 ? "Free" : `$${(shipping / 100).toFixed(2)}`}
+                                        </span>
                                     </div>
-                                    {shipping > 0 && (
-                                        <p className="text-xs text-muted-foreground">
-                                            Free shipping on orders over $100
-                                        </p>
-                                    )}
-                                    <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                                        <span>Total</span>
-                                        <span>${(total / 100).toFixed(2)}</span>
+                                    <div className="flex justify-between pt-3 border-t items-baseline">
+                                        <span className="font-medium">Total</span>
+                                        <span className="font-serif text-2xl font-bold text-primary">${(total / 100).toFixed(2)}</span>
                                     </div>
                                 </div>
 
                                 <Button
                                     type="submit"
                                     size="lg"
-                                    className="w-full h-14 text-lg"
+                                    className="w-full shadow-md hover:shadow-lg rounded-xl"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
                                         <>
-                                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
                                             Processing...
                                         </>
                                     ) : paymentMethod === "stripe" ? (
                                         <>
-                                            <CreditCard className="w-5 h-5 mr-2" />
+                                            <CreditCard className="w-4 h-4 mr-2" />
                                             Pay ${(total / 100).toFixed(2)}
                                         </>
                                     ) : (
                                         <>
-                                            <Banknote className="w-5 h-5 mr-2" />
+                                            <Banknote className="w-4 h-4 mr-2" />
                                             Place Order (COD)
                                         </>
                                     )}
                                 </Button>
-
-                                <p className="text-xs text-center text-muted-foreground">
-                                    By placing this order, you agree to our Terms of Service and Privacy Policy.
-                                </p>
                             </div>
                         </div>
                     </div>

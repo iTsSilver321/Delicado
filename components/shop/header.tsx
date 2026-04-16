@@ -1,19 +1,15 @@
 "use client";
 
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn, getInitials } from "@/lib/utils";
 
-import { ShoppingBag, Menu, Search, ChevronDown, Bed, Shirt, UtensilsCrossed, User, LogOut, Package, Shield, Heart } from "lucide-react";
+import { ShoppingBag, Menu, User, LogOut, Package, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store";
-import { CartSheet } from "./CartSheet";
-import { SearchDialog } from "./SearchDialog";
-import { SearchInput } from "./SearchInput";
 import { MobileMenu } from "./MobileMenu";
 import { ThemeToggle } from "./ThemeToggle";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import {
@@ -28,10 +24,10 @@ import { signout } from "@/app/(auth)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 
-const categories = [
-    { name: "Bedding", href: "/products/bedding", icon: Bed, desc: "Pillows, sheets & more" },
-    { name: "Clothing", href: "/products/clothing", icon: Shirt, desc: "Robes, shirts & apparel" },
-    { name: "Tableware", href: "/products/tableware", icon: UtensilsCrossed, desc: "Table linens & decor" },
+const navLinks = [
+    { name: "Shop", href: "/shop" },
+    { name: "About Us", href: "/about" },
+    { name: "Contact", href: "/contact" },
 ];
 
 interface HeaderProps {
@@ -40,17 +36,21 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
     const pathname = usePathname();
-    const { items, openCart } = useCartStore();
+    const { items } = useCartStore();
     const [mounted, setMounted] = useState(false);
-    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
 
-    // Hydration fix for persisting store
-    // Hydration fix
     useEffect(() => {
         setMounted(true);
+    }, []);
+
+    // Scroll listener for subtle header background shift
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
     // Check if user is admin
@@ -76,32 +76,25 @@ export function Header({ user }: HeaderProps) {
         };
     }, [user]);
 
-    // Keyboard shortcut for search
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-                e.preventDefault();
-                setIsSearchOpen(true);
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, []);
-
     const itemCount = mounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
 
     return (
-        <header className="sticky top-0 z-40 w-full border-b border-border/50 dark:border-border/30 bg-background/80 dark:bg-card/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 dark:supports-[backdrop-filter]:bg-card/60">
-            <div className="container flex h-16 items-center justify-between">
+        <header className={cn(
+            "sticky top-0 z-40 w-full transition-all duration-300",
+            scrolled
+                ? "bg-background/90 backdrop-blur-md border-b border-border/50 shadow-sm"
+                : "bg-background border-b border-transparent"
+        )}>
+            <div className="container flex h-[72px] items-center justify-between">
+                {/* Left — Mobile menu + Logo */}
                 <div className="flex items-center gap-4">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="md:hidden"
+                        className="md:hidden -ml-2"
                         onClick={() => setIsMobileMenuOpen(true)}
                     >
-                        <Menu className="h-6 w-6" />
+                        <Menu className="h-5 w-5" />
                         <span className="sr-only">Toggle menu</span>
                     </Button>
                     <Link
@@ -118,82 +111,46 @@ export function Header({ user }: HeaderProps) {
                     </Link>
                 </div>
 
+                {/* Center — Nav */}
                 <nav className="hidden md:flex items-center gap-1">
-                    {/* Categories Dropdown */}
-                    <div
-                        className="relative"
-                        onMouseEnter={() => setIsDropdownOpen(true)}
-                        onMouseLeave={() => setIsDropdownOpen(false)}
-                    >
-                        <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors hover:text-primary rounded-lg hover:bg-secondary/50">
-                            Shop
-                            <ChevronDown className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        <AnimatePresence>
-                            {isDropdownOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="absolute left-0 top-full pt-2"
-                                >
-                                    <div className="w-64 bg-background rounded-xl border shadow-xl p-2">
-                                        {categories.map((category) => (
-                                            <Link
-                                                key={category.name}
-                                                href={category.href}
-                                                className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors"
-                                            >
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                                                    <category.icon className="h-5 w-5 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-sm">{category.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{category.desc}</p>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                        <div className="border-t mt-2 pt-2">
-                                            <Link
-                                                href="/search"
-                                                className="block px-3 py-2 text-sm font-medium text-primary hover:underline"
-                                            >
-                                                Shop All Products →
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </motion.div>
+                    {navLinks.map((link) => (
+                        <Link
+                            key={link.name}
+                            href={link.href}
+                            className={cn(
+                                "relative px-4 py-2 text-sm font-medium transition-colors rounded-lg",
+                                pathname === link.href
+                                    ? "text-primary"
+                                    : "text-muted-foreground hover:text-foreground"
                             )}
-                        </AnimatePresence>
-                    </div>
-
-                    <Link href="/search" className="px-4 py-2 text-sm font-medium transition-colors hover:text-primary rounded-lg hover:bg-secondary/50">
-                        Shop All
-                    </Link>
+                        >
+                            {link.name}
+                            {pathname === link.href && (
+                                <motion.span
+                                    layoutId="nav-underline"
+                                    className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                                />
+                            )}
+                        </Link>
+                    ))}
                 </nav>
 
-                <div className="flex items-center gap-2">
-                    {/* Search Bar - responsive width */}
-                    <div className="hidden sm:block w-40 sm:w-48 md:w-64 mr-2">
-                        <SearchInput />
-                    </div>
-
-                    {/* Theme Toggle */}
+                {/* Right — Actions */}
+                <div className="flex items-center gap-1">
                     <ThemeToggle />
 
-                    {/* Cart - Now links to separate page */}
+                    {/* Cart */}
                     <Link href="/cart">
                         <Button variant="ghost" size="icon" className="relative group">
-                            <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            <ShoppingBag className="w-5 h-5 group-hover:scale-105 transition-transform" />
                             <AnimatePresence>
                                 {itemCount > 0 && (
                                     <motion.span
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
                                         exit={{ scale: 0 }}
-                                        className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background"
+                                        className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-background"
                                     >
                                         {itemCount}
                                     </motion.span>
@@ -209,13 +166,13 @@ export function Header({ user }: HeaderProps) {
                                 <Button variant="ghost" size="icon" className="rounded-full overflow-hidden" suppressHydrationWarning>
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={user.user_metadata?.avatar_url} />
-                                        <AvatarFallback className="bg-primary/10 text-primary">
+                                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
                                             {getInitials(user.user_metadata?.full_name || user.email)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuContent align="end" className="w-52">
                                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
@@ -228,12 +185,6 @@ export function Header({ user }: HeaderProps) {
                                     <Link href="/profile" className="cursor-pointer">
                                         <Package className="mr-2 h-4 w-4" />
                                         <span>Orders</span>
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link href="/wishlist" className="cursor-pointer">
-                                        <Heart className="mr-2 h-4 w-4" />
-                                        <span>Wishlist</span>
                                     </Link>
                                 </DropdownMenuItem>
                                 {isAdmin && (
@@ -260,15 +211,13 @@ export function Header({ user }: HeaderProps) {
                         </DropdownMenu>
                     ) : (
                         <>
-                            {/* Mobile: Icon only */}
                             <Button asChild variant="ghost" size="icon" className="sm:hidden text-primary hover:text-primary hover:bg-primary/10">
                                 <Link href="/login">
                                     <User className="h-5 w-5" />
                                     <span className="sr-only">Login</span>
                                 </Link>
                             </Button>
-                            {/* Desktop: Text button */}
-                            <Button asChild variant="default" size="sm" className="hidden sm:inline-flex ml-2">
+                            <Button asChild variant="default" size="sm" className="hidden sm:inline-flex ml-2 rounded-full px-5">
                                 <Link href="/login">
                                     Login
                                 </Link>
@@ -278,8 +227,6 @@ export function Header({ user }: HeaderProps) {
                 </div>
             </div>
 
-
-            <SearchDialog isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
             <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} user={user} />
         </header>
     );

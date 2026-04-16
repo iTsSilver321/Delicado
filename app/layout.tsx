@@ -20,19 +20,19 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Delicado | Premium Embroidery",
-  description: "Personalized embroidery products visualized.",
+  title: "Delicado | Premium Embroidered Bedding",
+  description: "Artisan-crafted embroidered bedding sets. Premium cotton, exquisite designs, timeless elegance for your home.",
   openGraph: {
-    title: "Delicado | Premium Embroidery",
-    description: "Personalized embroidery products visualized.",
+    title: "Delicado | Premium Embroidered Bedding",
+    description: "Artisan-crafted embroidered bedding sets. Premium cotton, exquisite designs, timeless elegance for your home.",
     siteName: "Delicado",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Delicado | Premium Embroidery",
-    description: "Personalized embroidery products visualized.",
+    title: "Delicado | Premium Embroidered Bedding",
+    description: "Artisan-crafted embroidered bedding sets. Premium cotton, exquisite designs, timeless elegance for your home.",
   },
 };
 
@@ -48,7 +48,15 @@ export default function RootLayout({
       >
         <ThemeProvider>
           {children}
-          <Toaster />
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              className: "rounded-xl border shadow-lg",
+              style: {
+                fontFamily: "var(--font-geist-sans)",
+              },
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>
