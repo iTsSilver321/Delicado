@@ -24,6 +24,7 @@ const mainLinks = [
     { name: "Shop All", href: "/shop" },
     { name: "Branch Collection", href: "/shop?design=branch" },
     { name: "Flower Collection", href: "/shop?design=flower" },
+    { name: "Wishlist", href: "/wishlist" },
 ];
 
 const supportLinks = [

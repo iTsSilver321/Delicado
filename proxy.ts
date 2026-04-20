@@ -3,37 +3,51 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+// Define the redis instance safely so the site doesn't crash if the Upstash URL is invalid/expired
+let redis: Redis | null = null;
+let ratelimit: Ratelimit | null = null;
 
-// Create a new ratelimiter, that allows 10 requests per 10 seconds
-const ratelimit = new Ratelimit({
-  redis: redis,
-  limiter: Ratelimit.slidingWindow(10, '10 s'),
-  analytics: true,
-  prefix: '@upstash/ratelimit',
-})
+try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+
+    ratelimit = new Ratelimit({
+      redis: redis,
+      limiter: Ratelimit.slidingWindow(10, '10 s'),
+      analytics: true,
+      prefix: '@upstash/ratelimit',
+    })
+  }
+} catch (error) {
+  console.warn('Failed to initialize Upstash Redis:', error);
+}
 
 export async function proxy(request: NextRequest) {
   // Rate Limit API routes
-  if (request.nextUrl.pathname.startsWith('/api')) {
-    const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1'
-    const { success, limit, reset, remaining } = await ratelimit.limit(ip)
+  if (request.nextUrl.pathname.startsWith('/api') && ratelimit) {
+    try {
+      const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1'
+      const { success, limit, reset, remaining } = await ratelimit.limit(ip)
 
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': limit.toString(),
-            'X-RateLimit-Remaining': remaining.toString(),
-            'X-RateLimit-Reset': reset.toString(),
-          },
-        }
-      )
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Too many requests' },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            },
+          }
+        )
+      }
+    } catch (e: any) {
+      // Fail open if the database is temporarily unreachable
+      console.error('[RateLimiter] Database unreachable, bypassing rate limit:', e.message);
     }
   }
 

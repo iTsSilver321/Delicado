@@ -1,6 +1,8 @@
 import { Header } from "@/components/shop/header";
 import { Footer } from "@/components/shop/footer";
 import { createClient } from "@/lib/supabase/server";
+import { getWishlistProductIds } from "./actions/wishlist";
+import { WishlistProvider } from "@/components/shop/WishlistProvider";
 
 export default async function ShopLayout({
     children,
@@ -9,14 +11,22 @@ export default async function ShopLayout({
 }) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+    
+    let wishlistIds: string[] = [];
+    if (user) {
+        const { data } = await getWishlistProductIds();
+        if (data) wishlistIds = data;
+    }
 
     return (
-        <div className="flex min-h-screen flex-col">
-            <Header user={user} />
-            <main className="flex-1">
-                {children}
-            </main>
-            <Footer />
-        </div>
+        <WishlistProvider isAuthenticated={!!user} initialWishlistIds={wishlistIds}>
+            <div className="flex min-h-screen flex-col">
+                <Header user={user} />
+                <main className="flex-1">
+                    {children}
+                </main>
+                <Footer />
+            </div>
+        </WishlistProvider>
     );
 }

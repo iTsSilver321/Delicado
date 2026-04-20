@@ -15,6 +15,7 @@ import {
   Clock
 } from "lucide-react";
 import { toast } from "sonner";
+import { WishlistButton } from "@/components/shop/WishlistButton";
 import { products, getProductsByDesign } from "@/lib/products";
 
 import Turnstile from "react-turnstile";
@@ -160,28 +161,42 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08, duration: 0.5 }}
+                className="group"
               >
-                <Link href={`/product/${product.slug}`} className="group block">
-                  <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-secondary/30 mb-4">
-                    {/* Tucked — default */}
-                    <Image
-                      src={product.images.tucked}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-all duration-700 group-hover:opacity-0 group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    {/* Normal — hover */}
-                    <Image
-                      src={product.images.normal}
-                      alt={`${product.name} on the bed`}
-                      fill
-                      className="object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    {/* Subtle overlay on hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 rounded-2xl" />
+                <div className="relative">
+                  <Link href={`/product/${product.slug}`} className="block">
+                    <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-secondary/30 mb-4">
+                      {/* Tucked — default */}
+                      <Image
+                        src={product.images.tucked}
+                        alt={product.name}
+                        fill
+                        className="object-cover transition-all duration-700 group-hover:opacity-0 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                      {/* Normal — hover */}
+                      <Image
+                        src={product.images.normal}
+                        alt={`${product.name} on the bed`}
+                        fill
+                        className="object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                      {/* Subtle overlay on hover */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 rounded-2xl" />
+                    </div>
+                  </Link>
+                  {/* Wishlist button */}
+                  <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <WishlistButton
+                          productId={product.id}
+                          productName={product.name}
+                          variant="icon"
+                          size="sm"
+                      />
                   </div>
+                </div>
+                <Link href={`/product/${product.slug}`} className="block">
                   <div className="flex items-center justify-between">
                     <h3 className="font-serif text-base font-semibold group-hover:text-primary transition-colors">
                       {product.name}

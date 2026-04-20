@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
+import { useWishlist } from "./WishlistProvider";
+
 interface WishlistButtonProps {
     productId: string;
     productName?: string;
-    initialIsInWishlist?: boolean;
-    isAuthenticated?: boolean;
     variant?: "icon" | "default";
     size?: "sm" | "default" | "lg";
     className?: string;
@@ -22,13 +22,13 @@ interface WishlistButtonProps {
 export function WishlistButton({
     productId,
     productName = "Item",
-    initialIsInWishlist = false,
-    isAuthenticated = false,
     variant = "icon",
     size = "default",
     className,
 }: WishlistButtonProps) {
-    const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist);
+    const { isAuthenticated, wishlistIds, addWishlistId, removeWishlistId } = useWishlist();
+    const isInWishlist = wishlistIds.includes(productId);
+    
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -42,16 +42,16 @@ export function WishlistButton({
         }
 
         const wasInWishlist = isInWishlist;
-        // Optimistic update
-        setIsInWishlist(!isInWishlist);
-
-        // Show optimistic toast
+        
+        // Optimistic update via context
         if (wasInWishlist) {
+            removeWishlistId(productId);
             toast.success("Removed from wishlist", {
                 description: productName,
                 icon: "💔",
             });
         } else {
+            addWishlistId(productId);
             toast.success("Added to wishlist", {
                 description: productName,
                 icon: "❤️",
@@ -62,7 +62,11 @@ export function WishlistButton({
             const result = await toggleWishlist(productId);
             if (result.error) {
                 // Revert on error
-                setIsInWishlist(wasInWishlist);
+                if (wasInWishlist) {
+                    addWishlistId(productId);
+                } else {
+                    removeWishlistId(productId);
+                }
                 toast.error("Something went wrong", {
                     description: result.error,
                 });

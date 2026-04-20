@@ -1,23 +1,44 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CheckCircle, Package, ArrowRight, Loader2 } from "lucide-react";
 import { useCartStore } from "@/lib/store";
+import { trackPurchase } from "@/lib/analytics";
 import confetti from "canvas-confetti";
 
 function SuccessContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get("order_id");
     const sessionId = searchParams.get("session_id");
-    const { clearCart } = useCartStore();
+    const { items, clearCart } = useCartStore();
     const [mounted, setMounted] = useState(false);
+    const purchaseTracked = useRef(false);
 
     useEffect(() => {
         setMounted(true);
+
+        // Track purchase event (once per order to avoid duplicates on refresh)
+        if (orderId && !purchaseTracked.current && items.length > 0) {
+            purchaseTracked.current = true;
+            const subtotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
+            const shipping = subtotal >= 10000 ? 0 : 999;
+            trackPurchase({
+                orderId,
+                total: subtotal + shipping,
+                shipping,
+                items: items.map((i) => ({
+                    id: i.id,
+                    name: i.name,
+                    price: i.price,
+                    quantity: i.quantity,
+                })),
+            });
+        }
+
         // Clear cart on successful checkout
         clearCart();
 
@@ -28,7 +49,7 @@ function SuccessContent() {
             origin: { y: 0.6 },
             colors: ['#c4a35a', '#1a1a1a', '#ffffff']
         });
-    }, [clearCart]);
+    }, [clearCart, orderId, items]);
 
     if (!mounted) {
         return (

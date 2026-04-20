@@ -21,7 +21,16 @@ export async function generateMetadata({
         openGraph: {
             title: `${product.name} | Delicado`,
             description: product.description,
-            images: [product.images.tucked],
+            siteName: "Delicado",
+            locale: "en_US",
+            type: "website",
+            // OG image auto-injected by opengraph-image.tsx
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: `${product.name} | Delicado`,
+            description: product.description,
+            // Twitter image auto-injected by twitter-image.tsx
         },
     };
 }

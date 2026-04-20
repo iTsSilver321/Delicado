@@ -15,6 +15,7 @@ import {
 import { ReviewList, Review } from "./ReviewList";
 import { StarRating } from "./StarRating";
 import { WishlistButton } from "./WishlistButton";
+import { trackViewItem, trackAddToCart } from "@/lib/analytics";
 
 interface ProductViewProps {
     product: Product;
@@ -49,7 +50,7 @@ const productDetails = [
 ];
 
 export function ProductView({ product }: ProductViewProps) {
-    const [activeImage, setActiveImage] = useState<'tucked' | 'normal'>('tucked');
+    const [activeImage, setActiveImage] = useState<'tucked' | 'normal' | 'extra'>('tucked');
     const [quantity, setQuantity] = useState(1);
     const [isZoomed, setIsZoomed] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
@@ -61,6 +62,17 @@ export function ProductView({ product }: ProductViewProps) {
 
     // "You may also like" — products from the other design family
     const otherDesignProducts = products.filter(p => p.design !== product.design).slice(0, 3);
+
+    // Analytics: track product view on mount
+    useEffect(() => {
+        trackViewItem({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            category: `${product.design} Collection`,
+            variant: product.color,
+        });
+    }, [product.id, product.name, product.price, product.design, product.color]);
 
     // Sticky bar on mobile — show when CTA scrolls out of view
     useEffect(() => {
@@ -87,6 +99,15 @@ export function ProductView({ product }: ProductViewProps) {
             price: product.price,
             image: product.images.tucked,
             quantity,
+        });
+
+        trackAddToCart({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity,
+            category: `${product.design} Collection`,
+            variant: product.color,
         });
 
         toast.success("Added to cart", {
@@ -134,6 +155,16 @@ export function ProductView({ product }: ProductViewProps) {
                                     >
                                         <Image src={product.images.normal} alt="Room view" fill className="object-cover" sizes="72px" />
                                     </button>
+                                    {product.images.extra && (
+                                        <button
+                                            onClick={() => setActiveImage('extra')}
+                                            className={`relative w-[72px] h-[90px] rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                                                activeImage === 'extra' ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-border'
+                                            }`}
+                                        >
+                                            <Image src={product.images.extra} alt="Detail view" fill className="object-cover" sizes="72px" />
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Main Image */}
@@ -153,8 +184,8 @@ export function ProductView({ product }: ProductViewProps) {
                                             className="absolute inset-0"
                                         >
                                             <Image
-                                                src={product.images[activeImage]}
-                                                alt={`${product.name} — ${activeImage === 'tucked' ? 'folded view' : 'on the bed'}`}
+                                                src={product.images[activeImage as keyof typeof product.images]!}
+                                                alt={`${product.name} — ${activeImage === 'tucked' ? 'folded view' : activeImage === 'normal' ? 'on the bed' : 'detail view'}`}
                                                 fill
                                                 priority
                                                 className="object-cover transition-transform duration-300"
@@ -169,7 +200,7 @@ export function ProductView({ product }: ProductViewProps) {
 
                                     {/* Image label pill */}
                                     <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-background/80 backdrop-blur-sm text-xs font-medium pointer-events-none">
-                                        {activeImage === 'tucked' ? '📦 Product View' : '🛏️ Room View'}
+                                        {activeImage === 'tucked' ? '📦 Product View' : activeImage === 'normal' ? '🛏️ Room View' : '✨ Detail View'}
                                     </div>
                                 </div>
                             </div>
@@ -192,6 +223,16 @@ export function ProductView({ product }: ProductViewProps) {
                                 >
                                     <Image src={product.images.normal} alt="Room view" fill className="object-cover" sizes="80px" />
                                 </button>
+                                {product.images.extra && (
+                                    <button
+                                        onClick={() => setActiveImage('extra')}
+                                        className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
+                                            activeImage === 'extra' ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-border'
+                                        }`}
+                                    >
+                                        <Image src={product.images.extra} alt="Detail view" fill className="object-cover" sizes="80px" />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </motion.div>

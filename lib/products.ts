@@ -12,6 +12,7 @@ export interface Product {
   images: {
     tucked: string;
     normal: string;
+    extra?: string;
   };
 }
 
@@ -30,6 +31,7 @@ export const products: Product[] = [
     images: {
       tucked: '/assets/grey_tucked_branch.jpeg',
       normal: '/assets/grey_branch.jpeg',
+      extra: '/assets/grey.jpeg',
     },
   },
   {
@@ -45,6 +47,7 @@ export const products: Product[] = [
     images: {
       tucked: '/assets/white_tucked_branch.jpeg',
       normal: '/assets/white_branch.jpeg',
+      extra: '/assets/white.jpeg',
     },
   },
   {
@@ -60,6 +63,7 @@ export const products: Product[] = [
     images: {
       tucked: '/assets/white-green_tucked_branch.jpeg',
       normal: '/assets/white-green_branch.jpeg',
+      extra: '/assets/white.jpeg',
     },
   },
 
@@ -77,6 +81,7 @@ export const products: Product[] = [
     images: {
       tucked: '/assets/grey_tucked_flower.jpeg',
       normal: '/assets/grey_flower.jpeg',
+      extra: '/assets/grey.jpeg',
     },
   },
   {
@@ -92,6 +97,7 @@ export const products: Product[] = [
     images: {
       tucked: '/assets/white_tucked_flower.jpeg',
       normal: '/assets/white_flower.jpeg',
+      extra: '/assets/white.jpeg',
     },
   },
   {
@@ -107,6 +113,7 @@ export const products: Product[] = [
     images: {
       tucked: '/assets/white-pink_tucked_flower.jpeg',
       normal: '/assets/white-pink_flower.jpeg',
+      extra: '/assets/white.jpeg',
     },
   },
 ];

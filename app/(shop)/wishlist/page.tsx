@@ -109,8 +109,6 @@ export default async function WishlistPage() {
                                         <WishlistButton
                                             productId={item.product_id}
                                             productName={item.product.name}
-                                            initialIsInWishlist={true}
-                                            isAuthenticated={true}
                                             variant="icon"
                                             size="sm"
                                             className="text-red-500"

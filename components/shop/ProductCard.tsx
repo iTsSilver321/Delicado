@@ -9,11 +9,9 @@ import { WishlistButton } from "./WishlistButton";
 interface ProductCardProps {
     product: Product;
     index?: number;
-    isInWishlist?: boolean;
-    isAuthenticated?: boolean;
 }
 
-export function ProductCard({ product, index = 0, isInWishlist = false, isAuthenticated = false }: ProductCardProps) {
+export function ProductCard({ product, index = 0 }: ProductCardProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -55,8 +53,6 @@ export function ProductCard({ product, index = 0, isInWishlist = false, isAuthen
                     <WishlistButton
                         productId={product.id}
                         productName={product.name}
-                        initialIsInWishlist={isInWishlist}
-                        isAuthenticated={isAuthenticated}
                         variant="icon"
                         size="sm"
                     />

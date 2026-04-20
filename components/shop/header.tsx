@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn, getInitials } from "@/lib/utils";
 
-import { ShoppingBag, Menu, User, LogOut, Package, Shield } from "lucide-react";
+import { ShoppingBag, Menu, User, LogOut, Package, Shield, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store";
 import { MobileMenu } from "./MobileMenu";
@@ -140,6 +140,14 @@ export function Header({ user }: HeaderProps) {
                 <div className="flex items-center gap-1">
                     <ThemeToggle />
 
+                    {/* Wishlist */}
+                    <Link href="/wishlist">
+                        <Button variant="ghost" size="icon" className="relative group text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20">
+                            <Heart className="w-5 h-5 group-hover:scale-105 transition-transform" />
+                            <span className="sr-only">View wishlist</span>
+                        </Button>
+                    </Link>
+
                     {/* Cart */}
                     <Link href="/cart">
                         <Button variant="ghost" size="icon" className="relative group">
@@ -185,6 +193,12 @@ export function Header({ user }: HeaderProps) {
                                     <Link href="/profile" className="cursor-pointer">
                                         <Package className="mr-2 h-4 w-4" />
                                         <span>Orders</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/wishlist" className="cursor-pointer">
+                                        <Heart className="mr-2 h-4 w-4" />
+                                        <span>Wishlist</span>
                                     </Link>
                                 </DropdownMenuItem>
                                 {isAdmin && (

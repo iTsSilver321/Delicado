@@ -1,6 +1,7 @@
 "use client";
 
 import { useCartStore } from "@/lib/store";
+import { trackBeginCheckout } from "@/lib/analytics";
 import {
     Sheet,
     SheetContent,
@@ -34,6 +35,7 @@ export function CartSheet() {
     const shippingProgress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
 
     const handleCheckout = () => {
+        trackBeginCheckout(items);
         closeCart();
         router.push('/checkout');
     };
